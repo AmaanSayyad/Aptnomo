@@ -12,16 +12,17 @@ export async function GET(request: NextRequest) {
         const wallet = searchParams.get('wallet');
         const limit = parseInt(searchParams.get('limit') || '50');
 
-        if (!wallet) {
-            return NextResponse.json({ error: 'Missing wallet parameter' }, { status: 400 });
-        }
-
-        const { data, error } = await supabaseServer
+        let query = supabaseServer
             .from('bet_history')
             .select('*')
-            .ilike('wallet_address', wallet)
             .order('resolved_at', { ascending: false })
             .limit(limit);
+
+        if (wallet && wallet !== 'all') {
+            query = query.ilike('wallet_address', wallet.toLowerCase());
+        }
+
+        const { data, error } = await query;
 
         if (error) {
             console.error('Supabase fetch error:', error);

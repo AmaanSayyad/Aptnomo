@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
         // Call credit_balance_for_payout stored procedure
         const { data, error } = await supabase.rpc('credit_balance_for_payout', {
-            p_user_address: normalizedAddress,
+            p_user_address: normalizedAddress.toLowerCase(),
             p_payout_amount: winAmount,
             p_currency: currency,
             p_bet_id: betId,

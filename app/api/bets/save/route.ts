@@ -25,8 +25,11 @@ export async function POST(request: NextRequest) {
         } = body;
 
         if (!id || !walletAddress) {
+            console.error('Save bet validation failed: Missing id or walletAddress', { id, walletAddress });
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
+
+        console.log('Saving bet to Supabase:', { id, walletAddress, amount, won, payout });
 
         const { error } = await supabaseServer
             .from('bet_history')
@@ -47,13 +50,27 @@ export async function POST(request: NextRequest) {
             }, { onConflict: 'id' });
 
         if (error) {
-            console.error('Supabase bet save error:', error);
-            return NextResponse.json({ error: 'Failed to save bet' }, { status: 500 });
+            console.error('Supabase bet save error:', {
+                code: error.code,
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                betId: id
+            });
+            return NextResponse.json({ 
+                error: 'Failed to save bet', 
+                code: error.code,
+                details: error.message 
+            }, { status: 500 });
         }
 
+        console.log('Bet saved successfully:', id);
         return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error('Error saving bet:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    } catch (error: any) {
+        console.error('Unexpected error saving bet:', error);
+        return NextResponse.json({ 
+            error: 'Internal server error', 
+            details: error.message 
+        }, { status: 500 });
     }
 }
