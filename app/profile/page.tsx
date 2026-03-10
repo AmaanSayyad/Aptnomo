@@ -122,7 +122,7 @@ export default function ProfilePage() {
                 <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mb-8">
                     <Wallet className="w-8 h-8 text-white/40" />
                 </div>
-                <h1 className="text-2xl font-black text-white uppercase tracking-widest mb-4 font-orbitron">NOMO Registry</h1>
+                <h1 className="text-2xl font-black text-white uppercase tracking-widest mb-4 font-orbitron">APTNOMO Registry</h1>
                 <p className="text-gray-500 max-w-xs mx-auto text-[10px] font-bold uppercase tracking-[0.2em] leading-relaxed mb-8">
                     Synchronization required. Please authorize your wallet to access neural trading identity.
                 </p>
@@ -372,7 +372,7 @@ export default function ProfilePage() {
                                         </button>
                                     </div>
                                 </div>
-                                <button onClick={() => window.open(`https://twitter.com/intent/tweet?text=Join the NOMO protocol and start trading with decentralized precision! Code: ${referralCode}`, '_blank')} className="w-full py-4 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-3">
+                                <button onClick={() => window.open(`https://twitter.com/intent/tweet?text=Join the APTNOMO protocol and start trading with decentralized precision! Code: ${referralCode}`, '_blank')} className="w-full py-4 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-3">
                                     <Share2 className="w-3 h-3" /> Share Access
                                 </button>
                             </div>

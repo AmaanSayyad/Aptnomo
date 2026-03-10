@@ -22,8 +22,8 @@ const orbitron = Orbitron({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://nomo.vercel.app'),
-  title: "Nomo - Binary Options on Aptos",
+  metadataBase: new URL('https://aptnomo.vercel.app'),
+  title: "Aptnomo - Binary Options on Aptos",
   description:
     "On-chain binary options trading dApp on Aptos mainnet. Powered by Pyth Hermes price attestations and Supabase. Oracle-bound resolution, minimal trust.",
   keywords: [
@@ -36,21 +36,21 @@ export const metadata: Metadata = {
     "prediction",
   ],
   icons: {
-    icon: "/creditnomo-logo.ico",
-    shortcut: "/creditnomo-logo.ico",
-    apple: "/creditnomo-logo.ico",
+    icon: "/aptnomo-logo.ico",
+    shortcut: "/aptnomo-logo.ico",
+    apple: "/aptnomo-logo.ico",
   },
   openGraph: {
-    title: "Nomo - Binary Options on Aptos",
+    title: "Aptnomo - Binary Options on Aptos",
     description:
       "On-chain binary options trading dApp on Aptos mainnet. Powered by Pyth Hermes and Supabase. Oracle-bound resolution, minimal trust.",
-    images: [{ url: '/creditnomo-logo.png', width: 512, height: 512, alt: 'Nomo' }],
+    images: [{ url: '/aptnomo-logo.png', width: 512, height: 512, alt: 'Aptnomo' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Nomo - Binary Options on Aptos",
+    title: "Aptnomo - Binary Options on Aptos",
     description: "On-chain binary options on Aptos mainnet. Oracle-bound resolution, minimal trust.",
-    images: ['/creditnomo-logo.png'],
+    images: ['/aptnomo-logo.png'],
   },
 };
 

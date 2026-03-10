@@ -22,7 +22,7 @@ export const WalletConnect: React.FC = () => {
 
   useEffect(() => {
     const fetchBalance = async () => {
-      const activeAddress = account?.address || address;
+      const activeAddress = account?.address?.toString() || address?.toString();
       if (!activeAddress || !connected) {
         setAptBalance('0');
         return;
@@ -93,7 +93,7 @@ export const WalletConnect: React.FC = () => {
                 Aptos Mainnet
               </span>
               <span className="text-white text-[10px] sm:text-[11px] font-mono leading-none">
-                {address ? `${address.slice(0, 4)}...${address.slice(-3)}` : '...'}
+                {address ? `${address.toString().slice(0, 4)}...${address.toString().slice(-3)}` : '...'}
               </span>
             </div>
           </div>

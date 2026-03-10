@@ -21,12 +21,13 @@ export const createProfileSlice: StateCreator<ProfileState> = (set, get) => ({
     isLoadingTrades: false,
 
     fetchProfile: async (address: string) => {
-        if (!address || address.startsWith('0xDEMO')) return;
+        const addrStr = address?.toString();
+        if (!addrStr || addrStr.startsWith('0xDEMO')) return;
         try {
             const { data, error } = await supabase
                 .from('user_profiles')
                 .select('username, access_code')
-                .ilike('user_address', address)
+                .ilike('user_address', addrStr)
                 .single();
 
             if (data) {

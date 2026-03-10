@@ -7,7 +7,7 @@ import { BalanceDisplay } from '@/components/balance';
 import { startPriceFeed } from '@/lib/store/gameSlice';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { getCTCConfig } from '@/lib/ctc/config';
-import { getCreditCoinClient, parseAptToOctas } from '@/lib/ctc/client';
+import { parseAptToOctas } from '@/lib/ctc/client';
 import { useToast } from '@/lib/hooks/useToast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Loader2, Wallet, Zap } from 'lucide-react';
@@ -94,23 +94,19 @@ export const GameBoard: React.FC = () => {
 
       const config = getCTCConfig();
       const treasuryAddress = config.treasuryAddress;
-      const aptos = getCreditCoinClient().getAptos();
       const value = parseAptToOctas(blitzEntryFee.toString());
 
-      const transaction = await aptos.transaction.build.simple({
-        sender: account.address,
+      // Pass the payload input directly to signAndSubmitTransaction.
+      // The wallet adapter builds, signs, and submits the transaction internally.
+      const payload = {
         data: {
-          function: '0x1::aptos_account::transfer',
+          function: '0x1::aptos_account::transfer' as const,
           functionArguments: [treasuryAddress, value.toString()],
         },
-      });
+      };
 
-      let response = await signAndSubmitTransaction(transaction);
-      let txHash = response?.hash;
-      if (!txHash) {
-        response = await signAndSubmitTransaction({ transaction });
-        txHash = response?.hash;
-      }
+      const response = await signAndSubmitTransaction(payload);
+      const txHash = response?.hash;
       if (!txHash) {
         throw new Error('Transaction submission failed');
       }

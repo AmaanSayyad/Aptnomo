@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { useBynomoStore } from '@/lib/store';
 import { useToast } from '@/lib/hooks/useToast';
 import { getCTCConfig } from '@/lib/ctc/config';
-import { getCreditCoinClient, parseAptToOctas } from '@/lib/ctc/client';
+import { parseAptToOctas } from '@/lib/ctc/client';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 
 interface DepositModalProps {
@@ -82,22 +82,18 @@ export const DepositModal: React.FC<DepositModalProps> = ({
       const treasuryAddress = config.treasuryAddress;
       const value = parseAptToOctas(depositAmount.toString());
 
-      const aptos = getCreditCoinClient().getAptos();
-      const transaction = await aptos.transaction.build.simple({
-        sender: account.address,
+      // Pass the payload input directly to signAndSubmitTransaction.
+      // The wallet adapter builds, signs, and submits the transaction internally.
+      const payload = {
         data: {
-          function: '0x1::aptos_account::transfer',
+          function: '0x1::aptos_account::transfer' as const,
           functionArguments: [treasuryAddress, value.toString()],
         },
-      });
+      };
 
       toast.info('Please confirm the transaction in your wallet...');
-      let response = await signAndSubmitTransaction(transaction);
-      let txHash = response?.hash;
-      if (!txHash) {
-        response = await signAndSubmitTransaction({ transaction });
-        txHash = response?.hash;
-      }
+      const response = await signAndSubmitTransaction(payload);
+      const txHash = response?.hash;
       if (!txHash) {
         throw new Error('Transaction submission failed');
       }

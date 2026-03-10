@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * SettlementNotification Component
- * Displays a NOMO-style popup when a bet is settled (win or loss)
+ * Displays an APTNOMO-style popup when a bet is settled (win or loss)
  */
 export const SettlementNotification: React.FC = () => {
     const lastResult = useNOMOStore(state => state.lastResult);

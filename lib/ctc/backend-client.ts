@@ -21,11 +21,15 @@ export class TreasuryClient {
   private treasuryPrivateKey: string;
 
   constructor(privateKey?: string) {
-    const key = privateKey || process.env.APTOS_TREASURY_PRIVATE_KEY;
+    let key = privateKey || process.env.APTOS_TREASURY_PRIVATE_KEY;
     if (!key) {
       const error = 'Treasury private key not found. Set APTOS_TREASURY_PRIVATE_KEY environment variable.';
       console.error('[TreasuryClient] ERROR:', error);
       throw new Error(error);
+    }
+    // Strip AIP-80 prefix (ed25519-priv-) if present
+    if (key.startsWith('ed25519-priv-')) {
+      key = key.replace('ed25519-priv-', '');
     }
     if (!/^(0x)?[0-9a-fA-F]{64}$/.test(key)) {
       const error = 'Invalid treasury private key format';

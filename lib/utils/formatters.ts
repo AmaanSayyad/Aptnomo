@@ -25,9 +25,10 @@ export const formatUSDC = (amount: string | number): string => {
 /**
  * Shorten a Sui address for display
  */
-export const shortenAddress = (address: string): string => {
+export const shortenAddress = (address: string | any): string => {
   if (!address) return '';
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  const addr = address.toString();
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 };
 
 /**

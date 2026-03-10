@@ -29,11 +29,13 @@ export const createReferralSlice: StateCreator<ReferralState> = (set, get) => ({
     },
 
     fetchReferralInfo: async (address: string) => {
+        const addrStr = address?.toString();
+        if (!addrStr) return;
         try {
             const { data, error } = await supabase
                 .from('user_referrals')
                 .select('*')
-                .eq('user_address', address.toLowerCase())
+                .eq('user_address', addrStr.toLowerCase())
                 .single();
 
             if (data) {
@@ -51,11 +53,13 @@ export const createReferralSlice: StateCreator<ReferralState> = (set, get) => ({
     },
 
     createReferralCode: async (address: string) => {
+        const addrStr = address?.toString();
+        if (!addrStr) return '';
         // Check if code already exists to avoid duplicate work
         const { data: existing } = await supabase
             .from('user_referrals')
             .select('referral_code, referral_count')
-            .eq('user_address', address.toLowerCase())
+            .eq('user_address', addrStr.toLowerCase())
             .single();
 
         if (existing) {
@@ -63,7 +67,7 @@ export const createReferralSlice: StateCreator<ReferralState> = (set, get) => ({
             return existing.referral_code;
         }
 
-        const shortAddr = address.slice(-4).toUpperCase();
+        const shortAddr = addrStr.slice(-4).toUpperCase();
         const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
         const code = `binomo-${shortAddr}${randomStr}`;
 
@@ -85,7 +89,7 @@ export const createReferralSlice: StateCreator<ReferralState> = (set, get) => ({
         const { data, error } = await supabase
             .from('user_referrals')
             .insert({
-                user_address: address.toLowerCase(),
+                user_address: addrStr.toLowerCase(),
                 referral_code: code,
                 referred_by: referredByAddress,
                 referral_count: 0

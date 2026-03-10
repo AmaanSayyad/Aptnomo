@@ -50,15 +50,16 @@ export const createBalanceSlice: StateCreator<BalanceState> = (set, get) => ({
     // APT-only: always use APT as currency
     const network = 'APT';
 
+    const addrStr = address?.toString();
     // Skip API fetch for demo mode as it uses local state only
-    if (!address || accountType === 'demo' || address.startsWith('0xDEMO')) {
+    if (!addrStr || accountType === 'demo' || addrStr.startsWith('0xDEMO')) {
       return;
     }
 
     try {
       set({ isLoading: true, error: null });
 
-      const response = await fetch(`/api/balance/${address}?currency=${network}`);
+      const response = await fetch(`/api/balance/${addrStr}?currency=${network}`);
 
       if (!response.ok) {
         const errorData = await response.json();

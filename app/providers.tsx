@@ -35,14 +35,15 @@ function WalletSync() {
     }
 
     if (connected && account?.address) {
-      if (address !== account.address) {
-        setAddress(account.address);
+      const addrStr = account.address.toString();
+      if (address !== addrStr) {
+        setAddress(addrStr);
         setIsConnected(true);
         setNetwork('APT');
 
         refreshWalletBalance();
-        fetchProfile(account.address);
-        fetchBalance(account.address);
+        fetchProfile(addrStr);
+        fetchBalance(addrStr);
       }
     } else if (address !== null && address !== '0xDEMO_1234567890') {
       setAddress(null);

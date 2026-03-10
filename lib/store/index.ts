@@ -18,13 +18,13 @@ import { ProfileState, createProfileSlice } from "./profileSlice";
 /**
  * Combined store type
  */
-export type BynomoStore = WalletState & GameState & HistoryState & BalanceState & ReferralState & ProfileState;
+export type AptnomoStore = WalletState & GameState & HistoryState & BalanceState & ReferralState & ProfileState;
 
 /**
  * Create the main Zustand store
  * Combines all slices into a single store
  */
-export const useBynomoStore = create<BynomoStore>()((...args) => ({
+export const useAptnomoStore = create<AptnomoStore>()((...args) => ({
   ...createWalletSlice(...args),
   ...createGameSlice(...args),
   ...createHistorySlice(...args),
@@ -39,12 +39,12 @@ export const useBynomoStore = create<BynomoStore>()((...args) => ({
  * Should be called once on app initialization
  */
 export const initializeStore = async (): Promise<void> => {
-  const store = useBynomoStore.getState();
+  const store = useAptnomoStore.getState();
 
   try {
     // Restore bet history from localStorage
     restoreBetHistory((bets) => {
-      useBynomoStore.setState({ bets });
+      useAptnomoStore.setState({ bets });
     });
 
     // Load target cells
@@ -59,12 +59,12 @@ export const initializeStore = async (): Promise<void> => {
     const stopPriceFeed = store.startGlobalPriceFeed(store.updateAllPrices);
 
     // Store cleanup function for later use
-    (window as any).__bynomoCleanup = () => {
+    (window as any).__aptnomoCleanup = () => {
       stopPriceFeed();
     };
 
 
-    console.log("BYNOMO store initialized successfully");
+    console.log("APTNOMO store initialized successfully");
   } catch (error) {
     console.error("Error initializing store:", error);
   }
@@ -76,33 +76,35 @@ export const initializeStore = async (): Promise<void> => {
  * Should be called when app is unmounted
  */
 export const cleanupStore = (): void => {
-  if ((window as any).__bynomoCleanup) {
-    (window as any).__bynomoCleanup();
-    delete (window as any).__bynomoCleanup;
+  if ((window as any).__aptnomoCleanup) {
+    (window as any).__aptnomoCleanup();
+    delete (window as any).__aptnomoCleanup;
   }
 };
 
 /**
  * Export individual selectors for optimized re-renders
  */
-export const useWalletAddress = () => useBynomoStore(state => state.address);
-export const useWalletBalance = () => useBynomoStore(state => state.walletBalance);
-export const useIsConnected = () => useBynomoStore(state => state.isConnected);
-export const useCurrentPrice = () => useBynomoStore(state => state.currentPrice);
-export const usePriceHistory = () => useBynomoStore(state => state.priceHistory);
-export const useActiveRound = () => useBynomoStore(state => state.activeRound);
-export const useTargetCells = () => useBynomoStore(state => state.targetCells);
-export const useBetHistory = () => useBynomoStore(state => state.bets);
-export const useIsPlacingBet = () => useBynomoStore(state => state.isPlacingBet);
-export const useIsSettling = () => useBynomoStore(state => state.isSettling);
-export const useHouseBalance = () => useBynomoStore(state => state.houseBalance);
-export const useIsLoadingBalance = () => useBynomoStore(state => state.isLoading);
-export const useUserTier = () => useBynomoStore(state => state.userTier);
+export const useWalletAddress = () => useAptnomoStore(state => state.address);
+export const useWalletBalance = () => useAptnomoStore(state => state.walletBalance);
+export const useIsConnected = () => useAptnomoStore(state => state.isConnected);
+export const useCurrentPrice = () => useAptnomoStore(state => state.currentPrice);
+export const usePriceHistory = () => useAptnomoStore(state => state.priceHistory);
+export const useActiveRound = () => useAptnomoStore(state => state.activeRound);
+export const useTargetCells = () => useAptnomoStore(state => state.targetCells);
+export const useBetHistory = () => useAptnomoStore(state => state.bets);
+export const useIsPlacingBet = () => useAptnomoStore(state => state.isPlacingBet);
+export const useIsSettling = () => useAptnomoStore(state => state.isSettling);
+export const useHouseBalance = () => useAptnomoStore(state => state.houseBalance);
+export const useIsLoadingBalance = () => useAptnomoStore(state => state.isLoading);
+export const useUserTier = () => useAptnomoStore(state => state.userTier);
 
 /**
  * Export main store hook (alias for convenience)
  */
-export const useStore = useBynomoStore;
+export const useStore = useAptnomoStore;
+export const useNOMOStore = useAptnomoStore;
+export const useBynomoStore = useAptnomoStore;
 
 /**
  * Export actions

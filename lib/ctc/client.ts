@@ -113,19 +113,20 @@ export class CreditCoinClient {
     const accountAddress = normalizeAddress(address);
     return this.executeWithRetry('getBalance', async () => {
       try {
-        const resource = await this.aptos.getAccountResource({
+        const amount = await this.aptos.getAccountCoinAmount({
           accountAddress,
-          resourceType: APTOS_COIN_STORE,
+          coinType: APTOS_COIN_TYPE,
         });
-        const data: any = (resource as any).data || resource;
-        const value = data?.coin?.value ?? data?.coin?.value?.toString?.();
-        if (value === undefined || value === null) {
-          throw new Error('Missing coin value in resource data');
-        }
-        return BigInt(value);
+        return BigInt(amount);
       } catch (error: any) {
-        const message = error?.message || '';
-        if (message.includes('resource') && message.includes('not found')) {
+        // Handle case where account doesn't exist yet
+        const isNotFound = 
+          error?.status === 404 || 
+          error?.message?.includes('resource_not_found') ||
+          error?.message?.includes('Account not found') ||
+          error?.data?.error_code === 'resource_not_found';
+          
+        if (isNotFound) {
           return 0n;
         }
         throw error;
@@ -225,7 +226,14 @@ export function formatOctasToApt(amount: bigint): string {
 }
 
 export function buildAptosSigner(privateKey: string): Account {
-  const clean = privateKey.startsWith('0x') ? privateKey.slice(2) : privateKey;
+  let clean = privateKey;
+  // Strip AIP-80 prefix (ed25519-priv-) if present
+  if (clean.startsWith('ed25519-priv-')) {
+    clean = clean.replace('ed25519-priv-', '');
+  }
+  if (clean.startsWith('0x')) {
+    clean = clean.slice(2);
+  }
   const pk = new Ed25519PrivateKey(clean);
   return Account.fromPrivateKey({ privateKey: pk });
 }
