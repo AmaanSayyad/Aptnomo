@@ -664,62 +664,49 @@ export const LiveChart: React.FC<LiveChartProps> = ({ betAmount, setBetAmount })
 
 
 
-  // Handle bet resolution when chart crosses cells with active bets
+  // Handle bet resolution when chart hits or passes cells
+  // We include all dependencies to ensure React stability during hot-reloads
   useEffect(() => {
     if (!scales || cellBets.size === 0 || gameMode !== 'box') return;
 
     betCells.forEach((cell: any) => {
       const bet = cellBets.get(cell.id);
-      if (cell.id && bet) {
-        // Check if this cell is definitively won or lost
-        const isResolved = cell.status === 'won' || cell.status === 'lost';
+      if (bet && (cell.status === 'won' || cell.status === 'lost')) {
+        const won = cell.status === 'won';
+        const payout = won ? bet.amount * bet.multiplier : 0;
 
-        if (isResolved) {
-          const won = cell.status === 'won';
-          const payout = won ? bet.amount * bet.multiplier : 0;
+        // Immediately remove from local tracking to avoid double-processing
+        setCellBets(prev => {
+          const next = new Map(prev);
+          next.delete(cell.id);
+          return next;
+        });
 
-          // Remove from local cellBets to prevent double processing
-          setCellBets(prev => {
-            const newMap = new Map(prev);
-            newMap.delete(cell.id);
-            return newMap;
-          });
+        // Resolve in store (handles balance updates, sounds, and API)
+        resolveBet(bet.betId, won, payout);
 
-          // Resolve the bet in the store - this handles balance updates and API calls
-          resolveBet(bet.betId, won, payout);
+        // Add visual feedback notification
+        setBetResults(prev => [...prev, {
+          id: `result-${bet.betId}`,
+          won,
+          amount: bet.amount,
+          payout,
+          multiplier: bet.multiplier,
+          timestamp: Date.now(),
+          x: cell.x,
+          y: cell.y
+        }]);
 
-          // Add bet result notification for visual feedback
-          setBetResults(prev => [...prev, {
-            id: `result-${bet.betId}`,
-            won,
-            amount: bet.amount,
-            payout,
-            multiplier: bet.multiplier,
-            timestamp: Date.now(),
-            x: cell.x,
-            y: cell.y
-          }]);
-
-          // Play sound effect
-          if (won) {
-            playWinSound();
-          } else {
-            playLoseSound();
-          }
-
-          // Add to resolved cells for visual feedback
-          setResolvedCells(prev => [...prev, {
-            id: cell.id,
-            row: 0,
-            won,
-            timestamp: Date.now()
-          }]);
-
-          console.log(`Box bet ${bet.betId} resolved: ${won ? 'WON' : 'LOST'} - Amount: ${bet.amount}, Multiplier: ${bet.multiplier}, Payout: ${payout}`);
-        }
+        // Visual feedback: tracking hit cells
+        setResolvedCells(prev => [...prev, {
+          id: cell.id,
+          row: 0,
+          won,
+          timestamp: Date.now()
+        }]);
       }
     });
-  }, [betCells, cellBets, scales, currentPrice, resolveBet, userAddress, fetchBalance, playWinSound, playLoseSound, gameMode]);
+  }, [betCells, cellBets, gameMode, resolveBet, scales, currentPrice, userAddress, fetchBalance]);
 
   return (
     <div ref={containerRef} className="absolute inset-0 z-0 bg-[#02040A] overflow-hidden select-none">
