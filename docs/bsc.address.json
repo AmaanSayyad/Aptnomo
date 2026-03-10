@@ -1,0 +1,22 @@
+{
+  "projectName": "Bynomo",
+  "network": "BSC Mainnet",
+  "contracts": [
+    {
+      "name": "BynomoTreasury",
+      "address": "0xE7cD1B07900eB06D59E5b3B3C65033C484E41009",
+      "explorerLink": "https://bscscan.com/address/0xE7cD1B07900eB06D59E5b3B3C65033C484E41009",
+      "description": "Primary BNB treasury for deposits and withdrawals. EOA; core binary options logic runs off-chain against this treasury."
+    },
+    {
+      "name": "BynomoTreasury (contract)",
+      "address": "0x2CdA441bA79F54E1dE7c366dF09c260247941760",
+      "explorerLink": "https://bsctrace.com/address/0x2CdA441bA79F54E1dE7c366dF09c260247941760?tab=transaction&p=1",
+      "description": "BynomoTreasury smart contract deployment on BNB Chain."
+    }
+  ],
+  "frontendUrl": "https://bynomo.vercel.app",
+  "appTradeUrl": "https://bynomo.vercel.app/trade",
+  "backendApi": "https://bynomo.vercel.app/api",
+  "notes": "Replace treasury address and URLs with your deployed values. For local dev use yarn dev (frontend: http://localhost:3000). Only deposits and withdrawals hit the chain; bets are settled off-chain via Pyth Hermes."
+}
