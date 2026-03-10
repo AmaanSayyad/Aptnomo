@@ -670,80 +670,53 @@ export const LiveChart: React.FC<LiveChartProps> = ({ betAmount, setBetAmount })
 
     betCells.forEach((cell: any) => {
       const bet = cellBets.get(cell.id);
-      if (!bet) return;
+      if (cell.id && bet) {
+        // Check if this cell is definitively won or lost
+        const isResolved = cell.status === 'won' || cell.status === 'lost';
 
-      // Check if this cell is being crossed or has been passed
-      const isCrossing = cell.status === 'active' || cell.status === 'won' || cell.status === 'lost';
+        if (isResolved) {
+          const won = cell.status === 'won';
+          const payout = won ? bet.amount * bet.multiplier : 0;
 
-      if (isCrossing) {
-        // Determine if bet won or lost based on current price
-        const won = currentPrice <= cell.priceTop && currentPrice >= cell.priceBottom;
-        const payout = won ? bet.amount * bet.multiplier : 0;
+          // Remove from local cellBets to prevent double processing
+          setCellBets(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(cell.id);
+            return newMap;
+          });
 
-        // Remove from cellBets
-        setCellBets(prev => {
-          const newMap = new Map(prev);
-          newMap.delete(cell.id);
-          return newMap;
-        });
+          // Resolve the bet in the store - this handles balance updates and API calls
+          resolveBet(bet.betId, won, payout);
 
-        // Resolve the bet in the store
-        resolveBet(bet.betId, won, payout);
+          // Add bet result notification for visual feedback
+          setBetResults(prev => [...prev, {
+            id: `result-${bet.betId}`,
+            won,
+            amount: bet.amount,
+            payout,
+            multiplier: bet.multiplier,
+            timestamp: Date.now(),
+            x: cell.x,
+            y: cell.y
+          }]);
 
-        // Add bet result notification
-        setBetResults(prev => [...prev, {
-          id: `result-${bet.betId}`,
-          won,
-          amount: bet.amount,
-          payout,
-          multiplier: bet.multiplier,
-          timestamp: Date.now(),
-          x: cell.x,
-          y: cell.y
-        }]);
-
-        // Play sound effect
-        if (won) {
-          playWinSound();
-        } else {
-          playLoseSound();
-        }
-
-        // Update house balance via API (skip for demo mode)
-        const isDemoMode = userAddress?.startsWith('0xDEMO');
-
-        if (userAddress && !isDemoMode) {
-          // Real mode - use API
+          // Play sound effect
           if (won) {
-            fetch('/api/balance/win', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                userAddress,
-                winAmount: payout,
-                betId: bet.betId
-              })
-            }).then(() => {
-              fetchBalance(userAddress);
-            }).catch(console.error);
+            playWinSound();
           } else {
-            // If lost, just refresh balance (already deducted)
-            fetchBalance(userAddress);
+            playLoseSound();
           }
-        } else if (isDemoMode && won) {
-          // Demo mode - update locally on win (bet amount already subtracted)
-          updateBalance(payout, 'add');
+
+          // Add to resolved cells for visual feedback
+          setResolvedCells(prev => [...prev, {
+            id: cell.id,
+            row: 0,
+            won,
+            timestamp: Date.now()
+          }]);
+
+          console.log(`Box bet ${bet.betId} resolved: ${won ? 'WON' : 'LOST'} - Amount: ${bet.amount}, Multiplier: ${bet.multiplier}, Payout: ${payout}`);
         }
-
-        // Add to resolved cells for visual feedback
-        setResolvedCells(prev => [...prev, {
-          id: cell.id,
-          row: 0,
-          won,
-          timestamp: Date.now()
-        }]);
-
-        console.log(`Bet resolved: ${won ? 'WON' : 'LOST'} - Amount: ${bet.amount}, Multiplier: ${bet.multiplier}, Payout: ${payout}`);
       }
     });
   }, [betCells, cellBets, scales, currentPrice, resolveBet, userAddress, fetchBalance, playWinSound, playLoseSound, gameMode]);
