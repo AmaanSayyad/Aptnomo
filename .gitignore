@@ -58,3 +58,5 @@ Thumbs.db
 .turbo
 *.tgz
 .cache
+
+.vercel

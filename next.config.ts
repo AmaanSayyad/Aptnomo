@@ -4,7 +4,10 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  turbopack: {},
+  // @ts-ignore
+  turbopack: {
+    root: 'c:\\Users\\enliven\\Documents\\GitHub\\Aptnomo',
+  },
 };
 
 export default nextConfig;
