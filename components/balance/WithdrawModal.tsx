@@ -26,8 +26,8 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
   const { address, withdrawFunds, houseBalance, network, refreshWalletBalance, isConnected } = useBynomoStore();
   const toast = useToast();
 
-  const currencySymbol = 'CTC';
-  const networkName = 'CreditCoin Testnet';
+  const currencySymbol = 'APT';
+  const networkName = 'Aptos Mainnet';
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -134,7 +134,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
             Available to Withdraw
           </p>
           <p className="text-[#FF006E] text-xl font-bold font-mono flex items-center gap-2">
-            <img src="/logos/ctc-logo.png" alt="CTC" className="w-5 h-5 rounded-sm" />
+            <img src="/logos/apt-logo.svg" alt="APT" className="w-5 h-5 rounded-sm" />
             {houseBalance.toFixed(4)} {currencySymbol}
           </p>
         </div>

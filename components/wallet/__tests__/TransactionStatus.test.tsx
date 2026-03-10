@@ -47,7 +47,7 @@ describe('TransactionStatus Component', () => {
     it('should render block explorer link with correct URL', () => {
       render(<TransactionStatus txHash={mockTxHash} status="confirmed" autoRefresh={false} />);
       const link = screen.getByRole('link', { name: /view on block explorer/i });
-      expect(link).toHaveAttribute('href', `https://creditcoin-testnet.blockscout.com/tx/${mockTxHash}`);
+      expect(link).toHaveAttribute('href', `https://explorer.aptoslabs.com/txn/${mockTxHash}?network=mainnet`);
       expect(link).toHaveAttribute('target', '_blank');
       expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     });
@@ -235,7 +235,7 @@ describe('TransactionStatus Component', () => {
       const link = screen.getByRole('link', { name: /view on block explorer/i });
       expect(link).toHaveAttribute(
         'href',
-        `https://creditcoin-testnet.blockscout.com/tx/${mockTxHash}`
+        `https://explorer.aptoslabs.com/txn/${mockTxHash}?network=mainnet`
       );
     });
 

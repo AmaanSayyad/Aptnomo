@@ -11,7 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
-import { ethers } from 'ethers';
+import { AccountAddress } from '@aptos-labs/ts-sdk';
 
 interface PayoutRequest {
   userAddress: string;
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body: PayoutRequest = await request.json();
-    const { userAddress, payoutAmount, currency = 'CTC', betId } = body;
+    const { userAddress, payoutAmount, currency = 'APT', betId } = body;
 
     // Validate required fields
     if (!userAddress || payoutAmount === undefined || payoutAmount === null || !betId) {
@@ -34,9 +34,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate address using utility
-    const { isValidAddress } = await import('@/lib/utils/address');
-    if (!(await isValidAddress(userAddress))) {
+    // Validate address
+    let normalizedAddress: string;
+    try {
+      normalizedAddress = AccountAddress.from(userAddress).toString();
+    } catch {
       return NextResponse.json(
         { error: 'Invalid wallet address format' },
         { status: 400 }
@@ -57,7 +59,7 @@ export async function POST(request: NextRequest) {
     // - Creating user record if it doesn't exist
     // - Inserting audit log entry with operation_type='bet_won'
     const { data, error } = await supabase.rpc('credit_balance_for_payout', {
-      p_user_address: userAddress,
+      p_user_address: normalizedAddress,
       p_payout_amount: payoutAmount,
       p_currency: currency,
       p_bet_id: betId,

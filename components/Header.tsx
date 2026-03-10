@@ -66,7 +66,7 @@ export function Header() {
                         className="text-xl sm:text-2xl font-black tracking-tighter sm:tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-400 to-white cursor-pointer select-none"
                         style={{ fontFamily: 'var(--font-orbitron)' }}
                     >
-                        CREDITNOMO
+                        NOMO
                     </motion.span>
                 </Link>
                 {demoActivated && (

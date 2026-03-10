@@ -1,8 +1,8 @@
 /**
- * CreditCoin Database Module
+ * Aptos Database Module
  * 
  * This module provides Supabase client and helper functions for managing
- * user house balances and audit logs on CreditCoin testnet.
+ * user house balances and audit logs on Aptos mainnet.
  * 
  * Requirements: 4.1, 4.2, 4.3
  */
@@ -32,7 +32,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export interface UserBalance {
   user_address: string;
   currency: string;
-  balance: string; // Decimal string (18 decimals)
+  balance: string; // Decimal string (8 decimals)
   updated_at: string;
   created_at: string;
 }
@@ -42,17 +42,17 @@ export interface BalanceAuditLog {
   user_address: string;
   currency: string;
   operation: string;
-  amount: string; // Decimal string (18 decimals)
-  balance_before: string; // Decimal string (18 decimals)
-  balance_after: string; // Decimal string (18 decimals)
+  amount: string; // Decimal string (8 decimals)
+  balance_before: string; // Decimal string (8 decimals)
+  balance_after: string; // Decimal string (8 decimals)
   tx_hash?: string;
   created_at: string;
 }
 
 /**
- * Get user's house balance in CTC
+ * Get user's house balance in APT
  * 
- * @param userAddress - User's EVM wallet address
+ * @param userAddress - User's Aptos wallet address
  * @returns User's house balance as decimal string, or '0' if user doesn't exist
  * 
  * Requirements: 4.1, 14.3, 14.6
@@ -65,7 +65,7 @@ export async function getHouseBalance(userAddress: string): Promise<string> {
       .from('user_balances')
       .select('balance')
       .eq('user_address', userAddress.toLowerCase())
-      .eq('currency', 'CTC')
+      .eq('currency', 'APT')
       .single();
 
     if (error) {
@@ -104,7 +104,7 @@ export async function getHouseBalance(userAddress: string): Promise<string> {
 /**
  * Update user's house balance with audit logging
  * 
- * @param userAddress - User's EVM wallet address
+ * @param userAddress - User's Aptos wallet address
  * @param amount - Amount to add (positive) or subtract (negative) as decimal string
  * @param operation - Operation type (deposit, withdraw, bet_debit, bet_credit, refund)
  * @param txHash - Optional blockchain transaction hash
@@ -128,7 +128,7 @@ export async function updateHouseBalance(
     // Calculate new balance
     const currentBalanceNum = parseFloat(currentBalance);
     const amountNum = parseFloat(amount);
-    const newBalance = (currentBalanceNum + amountNum).toFixed(18);
+    const newBalance = (currentBalanceNum + amountNum).toFixed(8);
     
     // Ensure balance doesn't go negative
     if (parseFloat(newBalance) < 0) {
@@ -148,7 +148,7 @@ export async function updateHouseBalance(
       .from('user_balances')
       .upsert({
         user_address: normalizedAddress,
-        currency: 'CTC',
+        currency: 'APT',
         balance: newBalance,
         updated_at: new Date().toISOString(),
       }, {
@@ -202,7 +202,7 @@ export async function updateHouseBalance(
 /**
  * Create audit log entry for balance change
  * 
- * @param userAddress - User's EVM wallet address
+ * @param userAddress - User's Aptos wallet address
  * @param operation - Operation type (deposit, withdraw, bet_debit, bet_credit, refund)
  * @param amount - Amount involved in the operation as decimal string
  * @param balanceBefore - Balance before operation as decimal string
@@ -226,7 +226,7 @@ export async function createAuditLog(
       .from('balance_audit_log')
       .insert({
         user_address: userAddress.toLowerCase(),
-        currency: 'CTC',
+        currency: 'APT',
         operation,
         amount,
         balance_before: balanceBefore,

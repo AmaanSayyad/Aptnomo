@@ -72,7 +72,7 @@ describe('Database Module', () => {
       mockInsert.mockResolvedValueOnce({ error: null });
 
       const newBalance = await updateHouseBalance('0x123', '50.0', 'deposit', '0xabc');
-      expect(newBalance).toBe('150.000000000000000000');
+      expect(newBalance).toBe('150.00000000');
     });
 
     it('should throw error for insufficient balance', async () => {
@@ -102,7 +102,7 @@ describe('Database Module', () => {
       expect(mockInsert).toHaveBeenCalledWith(
         expect.objectContaining({
           user_address: '0x123',
-          currency: 'CTC',
+          currency: 'APT',
           operation: 'deposit',
           amount: '50.0',
           balance_before: '100.0',

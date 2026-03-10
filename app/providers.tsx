@@ -1,25 +1,17 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useBynomoStore } from '@/lib/store';
 import { ToastProvider } from '@/components/ui/ToastProvider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { PrivyProvider, usePrivy, useWallets } from '@privy-io/react-auth';
-import { bsc } from 'viem/chains';
-import { WagmiProvider, useAccount } from 'wagmi';
-import { ConnectKitProvider } from 'connectkit';
-import { config as wagmiConfig } from '@/lib/ctc/wagmi';
-import { creditCoinTestnetChain } from '@/lib/ctc/wagmi';
+import { AptosWalletAdapterProvider, useWallet } from '@aptos-labs/wallet-adapter-react';
+import { Network } from '@aptos-labs/ts-sdk';
 
-// Custom Components
 import { WalletConnectModal } from '@/components/wallet/WalletConnectModal';
 import { ReferralSync } from './ReferralSync';
 
-// Wallet Sync component to bridge all wallet states with our Zustand store
 function WalletSync() {
-  const { user, authenticated, ready: privyReady } = usePrivy();
-  const { wallets: privyWallets } = useWallets();
-  const { address: wagmiAddress, isConnected: wagmiConnected } = useAccount();
+  const { account, connected } = useWallet();
 
   const {
     address,
@@ -30,35 +22,27 @@ function WalletSync() {
     refreshWalletBalance,
     fetchProfile,
     fetchBalance,
-    preferredNetwork
   } = useBynomoStore();
 
-
-  // 1. Sync Wallet Address & Connection Status
   useEffect(() => {
-    // Check Demo Mode
     if (accountType === 'demo') {
       if (address !== '0xDEMO_1234567890') {
         setAddress('0xDEMO_1234567890');
         setIsConnected(true);
-        setNetwork('CTC');
+        setNetwork('APT');
       }
       return;
     }
 
-    const effectiveAddress = wagmiAddress || (authenticated && privyWallets[0] ? privyWallets[0].address : null);
-    const effectiveConnected = wagmiConnected || (authenticated && !!privyWallets[0]);
-
-    if (effectiveConnected && effectiveAddress) {
-      if (address !== effectiveAddress) {
-        setAddress(effectiveAddress);
+    if (connected && account?.address) {
+      if (address !== account.address) {
+        setAddress(account.address);
         setIsConnected(true);
-        setNetwork('CTC');
+        setNetwork('APT');
 
-        // Initial fetch
         refreshWalletBalance();
-        fetchProfile(effectiveAddress);
-        fetchBalance(effectiveAddress);
+        fetchProfile(account.address);
+        fetchBalance(account.address);
       }
     } else if (address !== null && address !== '0xDEMO_1234567890') {
       setAddress(null);
@@ -66,18 +50,23 @@ function WalletSync() {
       setNetwork(null);
     }
   }, [
-    authenticated, privyWallets, privyReady, wagmiAddress, wagmiConnected, address, accountType,
-    setAddress, setIsConnected, setNetwork, refreshWalletBalance, fetchProfile, fetchBalance
+    connected,
+    account?.address,
+    address,
+    accountType,
+    setAddress,
+    setIsConnected,
+    setNetwork,
+    refreshWalletBalance,
+    fetchProfile,
+    fetchBalance,
   ]);
 
-  // 2. Poll House Balance
   useEffect(() => {
     if (!address || address === '0xDEMO_1234567890' || accountType === 'demo') return;
-
     const interval = setInterval(() => {
       fetchBalance(address);
     }, 10000);
-
     return () => clearInterval(interval);
   }, [address, accountType, fetchBalance]);
 
@@ -96,7 +85,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
     const initializeApp = async () => {
       try {
         const { updateAllPrices, loadTargetCells, startGlobalPriceFeed } = useBynomoStore.getState();
-
         await loadTargetCells().catch(console.error);
         const stopPriceFeed = startGlobalPriceFeed(updateAllPrices);
         setIsReady(true);
@@ -118,35 +106,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID || 'cm7377f0a00gup9u2w4m3v6be';
-
   return (
-    <WagmiProvider config={wagmiConfig}>
+    <AptosWalletAdapterProvider autoConnect dappConfig={{ network: Network.MAINNET }}>
       <QueryClientProvider client={queryClient}>
-        <ConnectKitProvider mode="dark">
-          <PrivyProvider
-            appId={PRIVY_APP_ID}
-            config={{
-              appearance: {
-                theme: 'dark',
-                accentColor: '#A855F7',
-                showWalletLoginFirst: true,
-              },
-              supportedChains: [bsc, creditCoinTestnetChain],
-              defaultChain: creditCoinTestnetChain,
-              embeddedWallets: {
-                createOnLogin: 'users-without-wallets',
-              },
-            }}
-          >
-            <WalletSync />
-            <ReferralSync />
-            {children}
-            <WalletConnectModal />
-            <ToastProvider />
-          </PrivyProvider>
-        </ConnectKitProvider>
+        <WalletSync />
+        <ReferralSync />
+        {children}
+        <WalletConnectModal />
+        <ToastProvider />
       </QueryClientProvider>
-    </WagmiProvider>
+    </AptosWalletAdapterProvider>
   );
 }

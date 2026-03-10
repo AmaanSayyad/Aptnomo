@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { AccountAddress } from '@aptos-labs/ts-sdk';
 import { supabaseServer } from '@/lib/supabase/server';
+import { parseAptToOctas } from '@/lib/ctc/client';
 
 interface WithdrawRequest {
   userAddress: string;
@@ -10,7 +12,7 @@ interface WithdrawRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: WithdrawRequest = await request.json();
-    const { userAddress, amount, currency = 'CTC' } = body;
+    const { userAddress, amount, currency = 'APT' } = body;
 
     console.log('Withdrawal request received:', { userAddress, amount, currency });
 
@@ -22,11 +24,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate CTC (EVM) address only
-    const { isValidAddress } = await import('@/lib/utils/address');
-    if (!(await isValidAddress(userAddress))) {
+    // Validate Aptos address
+    let normalizedAddress: string;
+    try {
+      normalizedAddress = AccountAddress.from(userAddress).toString();
+    } catch {
       return NextResponse.json(
-        { error: 'Invalid CTC (EVM) wallet address' },
+        { error: 'Invalid Aptos wallet address' },
         { status: 400 }
       );
     }
@@ -39,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. Get house balance from Supabase and validate
-    const lookupAddress = userAddress.toLowerCase();
+    const lookupAddress = normalizedAddress.toLowerCase();
     console.log('Withdrawal: Looking up user balance', { lookupAddress, currency });
     
     // Try to get balance with status, but fallback to just balance if status column doesn't exist
@@ -110,23 +114,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Insufficient house balance in ${currency}` }, { status: 400 });
     }
 
-    // 2. Apply 2% Treasury Fee (round to 18 decimals to avoid floating-point precision issues)
+    // 2. Apply 2% Treasury Fee (round to 8 decimals to avoid floating-point precision issues)
     const feePercent = 0.02;
     const feeAmount = amount * feePercent;
-    const netWithdrawAmount = parseFloat((amount - feeAmount).toFixed(18));
+    const netWithdrawAmount = parseFloat((amount - feeAmount).toFixed(8));
 
     console.log(`Withdrawal Request: Total=${amount}, Fee=${feeAmount}, Net=${netWithdrawAmount}, Currency=${currency}`);
 
-    // Perform CTC transfer from treasury
+    // Perform APT transfer from treasury
     let signature: string;
     try {
       const { getTreasuryClient } = await import('@/lib/ctc/backend-client');
-      const { parseEther } = await import('viem');
 
       const treasury = getTreasuryClient();
-      const amountInWei = parseEther(netWithdrawAmount.toString());
+      const amountInWei = parseAptToOctas(netWithdrawAmount.toString());
 
-      const result = await treasury.processWithdrawal(userAddress, amountInWei);
+      const result = await treasury.processWithdrawal(normalizedAddress, amountInWei);
 
       if (!result.success || !result.txHash) {
         throw new Error(result.error || 'Failed to process blockchain transfer');
@@ -151,7 +154,7 @@ export async function POST(request: NextRequest) {
     // 3. Update Supabase balance using RPC
     // Order: p_user_address, p_withdrawal_amount, p_currency, p_transaction_hash
     const { data, error } = await supabaseServer.rpc('update_balance_for_withdrawal', {
-      p_user_address: userAddress.toLowerCase(),
+      p_user_address: normalizedAddress.toLowerCase(),
       p_withdrawal_amount: amount,
       p_currency: currency,
       p_transaction_hash: signature,
@@ -159,12 +162,12 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Database error in withdrawal update:', error);
-      // Note: At this point the CTC has been sent!
+      // Note: At this point the APT has been sent!
       return NextResponse.json(
         {
           success: true,
           txHash: signature,
-          warning: 'CTC sent but balance update failed. Please contact support.',
+          warning: 'APT sent but balance update failed. Please contact support.',
           error: error.message
         },
         { status: 200 }

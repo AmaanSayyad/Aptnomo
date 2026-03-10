@@ -19,12 +19,12 @@ interface TransactionStatusProps {
  * 
  * Displays transaction hash with copy-to-clipboard functionality,
  * real-time transaction status, and a clickable link to the
- * CreditCoin testnet block explorer.
+ * Aptos mainnet block explorer.
  * 
  * Features:
  * - Copy transaction hash to clipboard
  * - Display transaction status (pending, confirmed, failed)
- * - Generate and display CreditCoin block explorer link
+ * - Generate and display Aptos block explorer link
  * - Auto-refresh status for pending transactions
  * 
  * Requirements: 13.1, 13.2, 13.3, 13.4, 13.5

@@ -1,7 +1,7 @@
 /**
  * Environment Variable Validation
- * 
- * This module validates required environment variables for CreditCoin integration
+ *
+ * This module validates required environment variables for Aptos integration
  * and logs warnings for missing or invalid configurations.
  */
 
@@ -13,58 +13,53 @@ interface EnvVariable {
 }
 
 /**
- * Required environment variables for CreditCoin integration
+ * Required environment variables for Aptos integration
  */
 const ENV_VARIABLES: EnvVariable[] = [
-  // CreditCoin Network Configuration
+  // Aptos Network Configuration
   {
-    name: 'NEXT_PUBLIC_CREDITCOIN_TESTNET_RPC',
+    name: 'NEXT_PUBLIC_APTOS_MAINNET_RPC',
     required: false,
-    description: 'CreditCoin testnet RPC endpoint (defaults to https://rpc.cc3-testnet.creditcoin.network)',
+    description: 'Aptos mainnet RPC endpoint (defaults to https://fullnode.mainnet.aptoslabs.com/v1)',
   },
   {
-    name: 'NEXT_PUBLIC_CREDITCOIN_TESTNET_CHAIN_ID',
+    name: 'NEXT_PUBLIC_APTOS_MAINNET_CHAIN_ID',
     required: false,
-    description: 'CreditCoin testnet chain ID (defaults to 102031)',
+    description: 'Aptos mainnet chain ID (defaults to 1)',
   },
   {
-    name: 'NEXT_PUBLIC_CREDITCOIN_TESTNET_EXPLORER',
+    name: 'NEXT_PUBLIC_APTOS_MAINNET_EXPLORER',
     required: false,
-    description: 'CreditCoin testnet block explorer URL (defaults to https://creditcoin-testnet.blockscout.com)',
+    description: 'Aptos mainnet block explorer URL (defaults to https://explorer.aptoslabs.com)',
   },
   {
-    name: 'NEXT_PUBLIC_CREDITCOIN_TESTNET_CURRENCY',
+    name: 'NEXT_PUBLIC_APTOS_MAINNET_CURRENCY_SYMBOL',
     required: false,
-    description: 'CreditCoin native currency name (defaults to CTC)',
+    description: 'Aptos currency symbol for display (defaults to APT)',
   },
   {
-    name: 'NEXT_PUBLIC_CREDITCOIN_TESTNET_CURRENCY_SYMBOL',
+    name: 'NEXT_PUBLIC_APTOS_MAINNET_CURRENCY_DECIMALS',
     required: false,
-    description: 'CreditCoin currency symbol for display (defaults to CTC)',
-  },
-  {
-    name: 'NEXT_PUBLIC_CREDITCOIN_TESTNET_CURRENCY_DECIMALS',
-    required: false,
-    description: 'CreditCoin native token decimals (defaults to 18)',
+    description: 'Aptos native token decimals (defaults to 8)',
   },
 
   // Treasury Configuration
   {
-    name: 'CREDITCOIN_TREASURY_ADDRESS',
+    name: 'APTOS_TREASURY_ADDRESS',
     required: false,
-    description: 'Treasury wallet address for deposits (defaults to 0x71197e7a1CA5A2cb2AD82432B924F69B1E3dB123)',
+    description: 'Treasury wallet address for deposits',
     serverSideOnly: true,
   },
   {
-    name: 'CREDITCOIN_TREASURY_PRIVATE_KEY',
+    name: 'APTOS_TREASURY_PRIVATE_KEY',
     required: true,
     description: 'Treasury private key for withdrawals (REQUIRED for withdrawal operations)',
     serverSideOnly: true,
   },
   {
-    name: 'NEXT_PUBLIC_CREDITCOIN_TREASURY_ADDRESS',
+    name: 'NEXT_PUBLIC_APTOS_TREASURY_ADDRESS',
     required: false,
-    description: 'Public treasury address for client-side display (defaults to 0x71197e7a1CA5A2cb2AD82432B924F69B1E3dB123)',
+    description: 'Public treasury address for client-side display',
   },
 
   // Supabase Configuration
@@ -79,36 +74,16 @@ const ENV_VARIABLES: EnvVariable[] = [
     description: 'Supabase anonymous key (REQUIRED for database operations)',
   },
 
-  // Wallet Connection Configuration
-  {
-    name: 'NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID',
-    required: false,
-    description: 'WalletConnect project ID (recommended for WalletConnect support)',
-  },
-
-  // Privy Configuration (Optional)
-  {
-    name: 'NEXT_PUBLIC_PRIVY_APP_ID',
-    required: false,
-    description: 'Privy app ID for social login (optional)',
-  },
-  {
-    name: 'PRIVY_APP_SECRET',
-    required: false,
-    description: 'Privy app secret for server-side operations (optional)',
-    serverSideOnly: true,
-  },
-
   // Application Configuration
   {
     name: 'NEXT_PUBLIC_APP_NAME',
     required: false,
-    description: 'Application name displayed in UI (defaults to CreditNomo)',
+    description: 'Application name displayed in UI (defaults to Nomo)',
   },
   {
-    name: 'NEXT_PUBLIC_CTC_NETWORK',
+    name: 'NEXT_PUBLIC_APTOS_NETWORK',
     required: false,
-    description: 'Network mode: testnet or mainnet (defaults to testnet)',
+    description: 'Network mode: mainnet (defaults to mainnet)',
   },
   {
     name: 'NEXT_PUBLIC_ROUND_DURATION',
@@ -184,10 +159,10 @@ function validateEnvVariable(envVar: EnvVariable): ValidationResult {
 
 /**
  * Validate all environment variables and log warnings
- * 
+ *
  * This function checks all required and optional environment variables
  * and logs appropriate warnings for missing configurations.
- * 
+ *
  * @returns Object with validation results and counts
  */
 export function validateEnvironment(): {
@@ -207,28 +182,28 @@ export function validateEnvironment(): {
 
     if (result.status === 'missing') {
       missingCount++;
-      console.error(`❌ Missing required environment variable: ${result.name}`);
+      console.error(`Missing required environment variable: ${result.name}`);
       console.error(`   ${result.message}`);
     } else if (result.status === 'warning') {
       warningCount++;
-      console.warn(`⚠️  Missing optional environment variable: ${result.name}`);
+      console.warn(`Missing optional environment variable: ${result.name}`);
       console.warn(`   ${result.message}`);
     }
   }
 
   // Log summary
   if (missingCount > 0) {
-    console.error(`\n❌ ${missingCount} required environment variable(s) missing`);
+    console.error(`\n${missingCount} required environment variable(s) missing`);
     console.error('   Please check .env.example for required configuration\n');
   }
 
   if (warningCount > 0) {
-    console.warn(`\n⚠️  ${warningCount} optional environment variable(s) missing`);
+    console.warn(`\n${warningCount} optional environment variable(s) missing`);
     console.warn('   Application will use default values\n');
   }
 
   if (missingCount === 0 && warningCount === 0) {
-    console.log('✅ All environment variables configured correctly\n');
+    console.log('All environment variables configured correctly\n');
   }
 
   return {
@@ -241,11 +216,11 @@ export function validateEnvironment(): {
 
 /**
  * Validate environment variables on module load (server-side only)
- * 
+ *
  * This runs automatically when the module is imported on the server side.
  * On the client side, validation is skipped to avoid exposing server-side variables.
  */
 if (isServerSide() && process.env.NODE_ENV !== 'test') {
-  console.log('🔍 Validating CreditCoin environment configuration...\n');
+  console.log('Validating Aptos environment configuration...\n');
   validateEnvironment();
 }

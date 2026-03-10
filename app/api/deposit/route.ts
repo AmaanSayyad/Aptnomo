@@ -3,7 +3,7 @@
  * 
  * This endpoint handles user deposit operations by:
  * 1. Validating the deposit request (userAddress, txHash, amount)
- * 2. Verifying the transaction on CreditCoin testnet
+ * 2. Verifying the transaction on Aptos mainnet
  * 3. Crediting the user's house balance in Supabase
  * 4. Creating an audit log entry
  * 
@@ -16,8 +16,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { ethers } from 'ethers';
-import { CreditCoinClient } from '@/lib/ctc/client';
+import { AccountAddress } from '@aptos-labs/ts-sdk';
+import { CreditCoinClient, parseAptToOctas, formatOctasToApt } from '@/lib/ctc/client';
 import { updateHouseBalance, getHouseBalance } from '@/lib/ctc/database';
 import { creditCoinTestnet } from '@/lib/ctc/config';
 
@@ -45,7 +45,7 @@ function sanitizeError(error: any): string {
 interface DepositRequest {
   userAddress: string;
   txHash: string;
-  amount: string; // CTC amount as string
+  amount: string; // APT amount as string
 }
 
 /**
@@ -93,7 +93,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<DepositRe
     }
 
     // Validate user address format
-    if (!ethers.isAddress(userAddress)) {
+    let normalizedUserAddress: string;
+    try {
+      normalizedUserAddress = AccountAddress.from(userAddress).toString();
+    } catch {
       console.error(`[${timestamp}] [Deposit API] Validation error: Invalid address format`, {
         userAddress,
       });
@@ -106,7 +109,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<DepositRe
     // Validate amount
     let amountBigInt: bigint;
     try {
-      amountBigInt = ethers.parseUnits(amount, 18);
+      amountBigInt = parseAptToOctas(amount);
       if (amountBigInt <= BigInt(0)) {
         console.error(`[${timestamp}] [Deposit API] Validation error: Invalid amount`, {
           amount,
@@ -147,13 +150,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<DepositRe
       amount,
     });
 
-    // Initialize CreditCoin client
+    // Initialize Aptos client
     const client = new CreditCoinClient();
 
     // Verify transaction on blockchain
-    let receipt;
+    let tx;
     try {
-      receipt = await client.waitForTransaction(txHash);
+      tx = await client.getTransactionByHash(txHash);
     } catch (error) {
       console.error(`[${timestamp}] [Deposit API] Transaction verification failed:`, {
         txHash,
@@ -168,13 +171,25 @@ export async function POST(request: NextRequest): Promise<NextResponse<DepositRe
       );
     }
 
-    // Check transaction status
-    if (receipt.status === 'failed') {
+    // Check transaction type and status
+    if (tx?.type && tx.type !== 'user_transaction') {
+      console.error(`[${timestamp}] [Deposit API] Unsupported transaction type:`, {
+        txHash,
+        userAddress,
+        type: tx.type,
+      });
+      return NextResponse.json(
+        { success: false, error: 'Transaction is not a user transaction' },
+        { status: 400 }
+      );
+    }
+
+    if (!tx?.success) {
       console.error(`[${timestamp}] [Deposit API] Transaction failed on blockchain:`, {
         txHash,
         userAddress,
         amount,
-        blockNumber: receipt.blockNumber,
+        version: tx?.version,
       });
       return NextResponse.json(
         { success: false, error: 'Transaction failed on blockchain' },
@@ -182,13 +197,45 @@ export async function POST(request: NextRequest): Promise<NextResponse<DepositRe
       );
     }
 
+    const treasuryAddress = AccountAddress.from(creditCoinTestnet.treasuryAddress).toString();
+    const payload = tx?.payload || {};
+    const fn = payload?.function;
+    const typeArgs = payload?.type_arguments || [];
+    const args = Array.isArray(payload?.arguments) ? payload.arguments : [];
+    let recipient = '';
+    if (args[0]) {
+      try {
+        recipient = AccountAddress.from(args[0]).toString();
+      } catch {
+        recipient = '';
+      }
+    }
+    const onChainAmount = args[1] ? BigInt(args[1]) : 0n;
+
+    const isAptosAccountTransfer = fn === '0x1::aptos_account::transfer';
+    const isCoinTransfer =
+      fn === '0x1::coin::transfer' &&
+      Array.isArray(typeArgs) &&
+      (typeArgs[0] === '0x1::aptos_coin::AptosCoin');
+
+    if (!isAptosAccountTransfer && !isCoinTransfer) {
+      console.error(`[${timestamp}] [Deposit API] Unsupported transaction payload:`, {
+        txHash,
+        userAddress,
+        function: fn,
+      });
+      return NextResponse.json(
+        { success: false, error: 'Transaction is not an APT transfer' },
+        { status: 400 }
+      );
+    }
+
     // Verify transaction recipient is treasury address
-    const treasuryAddress = creditCoinTestnet.treasuryAddress.toLowerCase();
-    if (receipt.to.toLowerCase() !== treasuryAddress) {
+    if (recipient !== treasuryAddress) {
       console.error(`[${timestamp}] [Deposit API] Transaction recipient mismatch:`, {
         txHash,
         expected: treasuryAddress,
-        actual: receipt.to.toLowerCase(),
+        actual: recipient,
         userAddress,
       });
       return NextResponse.json(
@@ -198,11 +245,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<DepositRe
     }
 
     // Verify transaction amount matches
-    if (receipt.value !== amountBigInt) {
+    if (onChainAmount !== amountBigInt) {
       console.error(`[${timestamp}] [Deposit API] Transaction amount mismatch:`, {
         txHash,
         expected: amount,
-        actual: client.formatCTC(receipt.value),
+        actual: formatOctasToApt(onChainAmount),
         userAddress,
       });
       return NextResponse.json(
@@ -212,11 +259,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<DepositRe
     }
 
     // Verify transaction sender is the user
-    if (receipt.from.toLowerCase() !== userAddress.toLowerCase()) {
+    const sender = AccountAddress.from(tx?.sender || '').toString();
+    if (sender !== normalizedUserAddress) {
       console.error(`[${timestamp}] [Deposit API] Transaction sender mismatch:`, {
         txHash,
-        expected: userAddress.toLowerCase(),
-        actual: receipt.from.toLowerCase(),
+        expected: normalizedUserAddress,
+        actual: sender,
       });
       return NextResponse.json(
         { success: false, error: 'Transaction sender does not match user address' },

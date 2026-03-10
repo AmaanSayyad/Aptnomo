@@ -1,30 +1,31 @@
 /**
- * API Route: CTC Bet Management
+ * API Route: APT Bet Management
  * POST /api/bet
  * 
- * Task: 7.1 Update app/api/bet/route.ts to handle CTC bets
+ * Task: 7.1 Update app/api/bet/route.ts to handle APT bets
  * Requirements: 7.1, 7.2, 7.3, 7.4, 7.6
  * 
- * Handles both bet placement and settlement for CTC bets:
- * - Bet placement: Deducts CTC from house balance
- * - Bet settlement: Credits CTC payout for winning bets
- * - Records all bets in bet_history with network='CTC', asset='CTC'
+ * Handles both bet placement and settlement for APT bets:
+ * - Bet placement: Deducts APT from house balance
+ * - Bet settlement: Credits APT payout for winning bets
+ * - Records all bets in bet_history with network='APT', asset='APT'
  * - Creates audit log entries for bet_debit and bet_credit operations
- * - Uses 18 decimal precision for all CTC amounts
+ * - Uses 8 decimal precision for all APT amounts
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
 import { updateHouseBalance } from '@/lib/ctc/database';
+import { AccountAddress } from '@aptos-labs/ts-sdk';
 
 interface BetPlacementRequest {
   action: 'place';
   userAddress: string;
-  betAmount: string; // Decimal string (18 decimals)
+  betAmount: string; // Decimal string (8 decimals)
   asset: string;
   direction: 'UP' | 'DOWN';
   multiplier: string; // Decimal string (4 decimals)
-  strikePrice: string; // Decimal string (18 decimals)
+  strikePrice: string; // Decimal string (8 decimals)
   mode?: string;
 }
 
@@ -64,13 +65,13 @@ export async function POST(request: NextRequest) {
 
 /**
  * Handle bet placement
- * Deducts CTC from house balance and records bet in bet_history
+ * Deducts APT from house balance and records bet in bet_history
  */
 async function handleBetPlacement(body: BetPlacementRequest): Promise<NextResponse> {
   const {
     userAddress,
     betAmount,
-    asset = 'CTC',
+    asset = 'APT',
     direction,
     multiplier,
     strikePrice,
@@ -86,7 +87,10 @@ async function handleBetPlacement(body: BetPlacementRequest): Promise<NextRespon
   }
 
   // Validate address format
-  if (!/^0x[a-fA-F0-9]{40}$/.test(userAddress)) {
+  let normalizedAddress: string;
+  try {
+    normalizedAddress = AccountAddress.from(userAddress).toString();
+  } catch {
     return NextResponse.json(
       { error: 'Invalid wallet address format' },
       { status: 400 }
@@ -123,9 +127,9 @@ async function handleBetPlacement(body: BetPlacementRequest): Promise<NextRespon
     // Deduct bet amount from house balance using stored procedure
     // This handles atomic balance update with row-level locking
     const { data, error } = await supabase.rpc('deduct_balance_for_bet', {
-      p_user_address: userAddress.toLowerCase(),
+      p_user_address: normalizedAddress.toLowerCase(),
       p_bet_amount: betAmountNum,
-      p_currency: 'CTC',
+      p_currency: 'APT',
     });
 
     if (error) {
@@ -168,7 +172,7 @@ async function handleBetPlacement(body: BetPlacementRequest): Promise<NextRespon
       // Return specific error message for insufficient balance
       if (result.error === 'Insufficient balance') {
         return NextResponse.json(
-          { error: 'Insufficient house balance. Please deposit more CTC.' },
+          { error: 'Insufficient house balance. Please deposit more APT.' },
           { status: 400 }
         );
       }
@@ -179,16 +183,16 @@ async function handleBetPlacement(body: BetPlacementRequest): Promise<NextRespon
     }
 
     // Generate bet ID
-    const betId = `bet_${Date.now()}_${userAddress.slice(-6)}`;
+    const betId = `bet_${Date.now()}_${normalizedAddress.slice(-6)}`;
 
-    // Record bet in bet_history with network='CTC', asset='CTC'
+    // Record bet in bet_history with network='APT', asset='APT'
     // Requirements: 7.6
     const { error: betHistoryError } = await supabase
       .from('bet_history')
       .insert({
         id: betId,
-        wallet_address: userAddress.toLowerCase(),
-        asset: 'CTC',
+        wallet_address: normalizedAddress.toLowerCase(),
+        asset: 'APT',
         direction,
         amount: betAmount,
         multiplier,
@@ -197,7 +201,7 @@ async function handleBetPlacement(body: BetPlacementRequest): Promise<NextRespon
         payout: null,
         won: null,
         mode,
-        network: 'CTC',
+        network: 'APT',
         resolved_at: null,
         created_at: new Date().toISOString(),
       });
@@ -254,7 +258,7 @@ async function handleBetPlacement(body: BetPlacementRequest): Promise<NextRespon
 
 /**
  * Handle bet settlement
- * Credits CTC payout for winning bets and updates bet_history
+ * Credits APT payout for winning bets and updates bet_history
  * Fetches price from Pyth oracle with retry logic
  * Refunds bet if oracle fails after all retries
  * 
@@ -375,7 +379,7 @@ async function handleBetSettlement(body: BetSettlementRequest): Promise<NextResp
         });
       }
 
-      endPrice = oraclePrice.toFixed(18);
+      endPrice = oraclePrice.toFixed(8);
       
       // Calculate if bet won based on oracle price
       const strikePrice = parseFloat(bet.strike_price);
@@ -429,14 +433,14 @@ async function handleBetSettlement(body: BetSettlementRequest): Promise<NextResp
       const betAmount = parseFloat(bet.amount);
       const multiplier = parseFloat(bet.multiplier);
       const payoutNum = betAmount * multiplier;
-      payout = payoutNum.toFixed(18);
+      payout = payoutNum.toFixed(8);
 
       // Credit payout to house balance using stored procedure
       // Requirements: 7.3
       const { data, error } = await supabase.rpc('credit_balance_for_payout', {
         p_user_address: bet.wallet_address,
         p_payout_amount: payoutNum,
-        p_currency: 'CTC',
+        p_currency: 'APT',
         p_bet_id: betId,
       });
 
@@ -650,7 +654,7 @@ async function refundBet(
     const { data, error } = await supabase.rpc('credit_balance_for_refund', {
       p_user_address: userAddress,
       p_refund_amount: betAmountNum,
-      p_currency: 'CTC',
+      p_currency: 'APT',
       p_bet_id: betId,
     });
 

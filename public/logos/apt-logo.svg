@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="APT">
+  <rect width="128" height="128" rx="24" fill="#0B0B0F"/>
+  <rect x="10" y="10" width="108" height="108" rx="20" fill="#111217" stroke="#2A2B33" stroke-width="2"/>
+  <text x="64" y="74" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="#FFFFFF">APT</text>
+</svg>

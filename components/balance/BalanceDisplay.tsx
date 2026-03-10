@@ -177,7 +177,7 @@ export const BalanceDisplay: React.FC = () => {
               <div className="flex items-center gap-1.5">
                 <div className="flex items-center gap-1">
                   <img
-                    src="/logos/ctc-logo.png"
+                    src="/logos/apt-logo.svg"
                     alt={network || 'Network'}
                     className="w-4 h-4 object-contain rounded-sm"
                   />
@@ -186,7 +186,7 @@ export const BalanceDisplay: React.FC = () => {
                   </p>
                 </div>
                 <span className={`text-sm font-mono ${accountType === 'demo' ? 'text-yellow-400/70' : 'text-purple-400/70'}`}>
-                  CTC
+                  APT
                 </span>
               </div>
             )}

@@ -25,13 +25,13 @@ export const Leaderboard: React.FC = () => {
         switch (network) {
             case 'SOL': return '/logos/solana-sol-logo.png';
             case 'SUI': return '/logos/sui-logo.png';
-            case 'CTC':
-            case 'CREDITCOIN':
-            case 'BNB': return '/logos/ctc-logo.png';
+            case 'APT':
+            case 'APTOS': return '/logos/apt-logo.svg';
+            case 'BNB': return '/logos/bnb-bnb-logo.png';
             case 'XLM': return '/logos/stellar-xlm-logo.png';
             case 'XTZ': return '/logos/tezos-xtz-logo.png';
             case 'NEAR': return '/logos/near-logo.svg';
-            default: return '/logos/ctc-logo.png';
+            default: return '/logos/apt-logo.svg';
         }
     };
 
@@ -39,13 +39,13 @@ export const Leaderboard: React.FC = () => {
         switch (network) {
             case 'SOL': return 'SOL';
             case 'SUI': return 'USDC';
-            case 'CTC':
-            case 'CREDITCOIN':
-            case 'BNB': return 'CTC';
+            case 'APT':
+            case 'APTOS': return 'APT';
+            case 'BNB': return 'BNB';
             case 'XLM': return 'XLM';
             case 'XTZ': return 'XTZ';
             case 'NEAR': return 'NEAR';
-            default: return 'CTC';
+            default: return 'APT';
         }
     };
 

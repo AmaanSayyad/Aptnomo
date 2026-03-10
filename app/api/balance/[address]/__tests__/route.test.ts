@@ -120,7 +120,7 @@ describe('GET /api/balance/[address]', () => {
     // Verify response
     expect(response.status).toBe(400);
     expect(json).toEqual({
-      error: 'Invalid CTC (EVM) wallet address',
+      error: 'Invalid Aptos wallet address',
     });
 
     // Verify database was not queried
@@ -139,7 +139,7 @@ describe('GET /api/balance/[address]', () => {
     // Verify response
     expect(response.status).toBe(400);
     expect(json).toEqual({
-      error: 'Invalid CTC (EVM) wallet address',
+      error: 'Invalid Aptos wallet address',
     });
   });
 

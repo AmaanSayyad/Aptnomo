@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // --- Assets / Icons ---
 // Reused from previous code
 const CHAINS = [
-    { name: 'CreditCoin Testnet', id: 'CTC', color: '#b24fff', logo: '/logos/ctc-logo.png', bg: '' },
+    { name: 'Aptos Mainnet', id: 'APT', color: '#b24fff', logo: '/logos/apt-logo.svg', bg: '' },
 ];
 
 export default function HowItWorksDemo() {
@@ -14,8 +14,8 @@ export default function HowItWorksDemo() {
 
     const features = [
         {
-            title: "CreditCoin Access",
-            desc: "Connect instantly with MetaMask or Privy on CreditCoin Testnet. Non-custodial and secure.",
+            title: "Aptos Access",
+            desc: "Connect instantly with your Aptos wallet on Aptos Mainnet. Non-custodial and secure.",
             component: <ChainSelectVisual />
         },
         {
@@ -112,9 +112,9 @@ export default function HowItWorksDemo() {
 
                 {/* Common Header UI (Static decoration) */}
                 <div className="absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-6 border-b border-white/5 bg-black/20 backdrop-blur-sm z-30 pointer-events-none">
-                    <div className="text-xl font-black tracking-tighter text-white" style={{ fontFamily: 'var(--font-orbitron)' }}>CREDITNOMO</div>
+                    <div className="text-xl font-black tracking-tighter text-white" style={{ fontFamily: 'var(--font-orbitron)' }}>NOMO</div>
                     <div className="flex gap-3">
-                        <div className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-lg text-[10px] font-bold text-purple-500 uppercase tracking-tighter">Testnet</div>
+                        <div className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-lg text-[10px] font-bold text-purple-500 uppercase tracking-tighter">Mainnet</div>
                         <div className={`px-3 py-1 border border-white/10 rounded-lg text-xs font-mono text-white flex items-center gap-2 transition-colors ${activeFeature === 0 ? 'bg-purple-500/20 border-purple-500/50' : 'bg-[#15151A]'}`}>
                             <div className={`w-2 h-2 rounded-full ${activeFeature === 0 ? 'bg-purple-400 animate-ping' : 'bg-green-500'}`} />
                             {activeFeature === 0 ? 'Connecting...' : 'Connected'}
@@ -261,7 +261,7 @@ function SettlementVisual() {
                     <div className="flex-1">
                         <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Total Payout</div>
                         <div className="text-2xl font-mono text-white font-bold flex items-center gap-2">
-                            +1.95 <span className="text-purple-400 text-sm">CTC</span>
+                            +1.95 <span className="text-purple-400 text-sm">APT</span>
                         </div>
                     </div>
                     <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded text-[10px] text-green-400 font-bold uppercase tracking-wider">

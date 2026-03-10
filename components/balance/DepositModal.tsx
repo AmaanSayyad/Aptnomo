@@ -1,15 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { ethers } from 'ethers';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useBynomoStore } from '@/lib/store';
 import { useToast } from '@/lib/hooks/useToast';
 import { getCTCConfig } from '@/lib/ctc/config';
-import { getAddress, parseEther } from 'viem';
-import { useAccount, useWalletClient } from 'wagmi';
+import { getCreditCoinClient, parseAptToOctas } from '@/lib/ctc/client';
+import { useWallet } from '@aptos-labs/wallet-adapter-react';
 
 interface DepositModalProps {
   isOpen: boolean;
@@ -28,16 +26,12 @@ export const DepositModal: React.FC<DepositModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { wallets: privyWallets } = useWallets();
-  const { authenticated } = usePrivy();
-  const { address: wagmiAddress, isConnected: wagmiConnected } = useAccount();
-  const { data: wagmiWalletClient } = useWalletClient();
-
+  const { account, connected, signAndSubmitTransaction } = useWallet() as any;
   const { depositFunds, walletBalance, refreshWalletBalance, address } = useBynomoStore();
   const toast = useToast();
 
-  const currencySymbol = 'CTC';
-  const networkName = 'CreditCoin Testnet';
+  const currencySymbol = 'APT';
+  const networkName = 'Aptos Mainnet';
   const quickAmounts = [0.1, 0.5, 1, 5];
 
   useEffect(() => {
@@ -59,7 +53,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({
 
   const handleMaxClick = () => {
     if (walletBalance > 0) {
-      const gasBuffer = 0.005;
+      const gasBuffer = 0.01;
       const maxAmount = Math.max(0, walletBalance - gasBuffer);
       setAmount(maxAmount.toFixed(4));
       setError(null);
@@ -72,7 +66,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({
       setError(validationError);
       return;
     }
-    if (!address) {
+    if (!address || !connected || !account?.address) {
       setError('Please connect your wallet');
       return;
     }
@@ -82,33 +76,30 @@ export const DepositModal: React.FC<DepositModalProps> = ({
       setError(null);
       const depositAmount = parseFloat(amount);
 
-      const ctcConfig = getCTCConfig();
-      if (!ctcConfig.treasuryAddress) throw new Error('Treasury address not configured');
+      const config = getCTCConfig();
+      if (!config.treasuryAddress) throw new Error('Treasury address not configured');
 
-      const treasuryAddress = getAddress(ctcConfig.treasuryAddress);
-      const value = parseEther(depositAmount.toString());
-      let txHash: string;
+      const treasuryAddress = config.treasuryAddress;
+      const value = parseAptToOctas(depositAmount.toString());
 
-      if (wagmiConnected && wagmiAddress?.toLowerCase() === address?.toLowerCase() && wagmiWalletClient) {
-        toast.info('Please confirm the transaction in your wallet...');
-        txHash = await wagmiWalletClient.sendTransaction({
-          to: treasuryAddress,
-          value,
-        });
-      } else if (authenticated && privyWallets?.length) {
-        const wallet = privyWallets.find(w => w.address.toLowerCase() === address.toLowerCase());
-        if (!wallet) throw new Error('Privy wallet not found');
-        const ethereumProvider = await wallet.getEthereumProvider();
-        const provider = new ethers.BrowserProvider(ethereumProvider);
-        const signer = await provider.getSigner();
-        toast.info('Please confirm the transaction in your wallet...');
-        const txResponse = await signer.sendTransaction({
-          to: treasuryAddress,
-          value: ethers.parseEther(depositAmount.toString()),
-        });
-        txHash = txResponse.hash;
-      } else {
-        throw new Error('Please connect your wallet to deposit (MetaMask or Social Login).');
+      const aptos = getCreditCoinClient().getAptos();
+      const transaction = await aptos.transaction.build.simple({
+        sender: account.address,
+        data: {
+          function: '0x1::aptos_account::transfer',
+          functionArguments: [treasuryAddress, value.toString()],
+        },
+      });
+
+      toast.info('Please confirm the transaction in your wallet...');
+      let response = await signAndSubmitTransaction(transaction);
+      let txHash = response?.hash;
+      if (!txHash) {
+        response = await signAndSubmitTransaction({ transaction });
+        txHash = response?.hash;
+      }
+      if (!txHash) {
+        throw new Error('Transaction submission failed');
       }
 
       toast.info('Transaction submitted. Waiting for confirmation...');
@@ -142,7 +133,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({
           </div>
           <p className="text-gray-400 text-[10px] uppercase tracking-wider mb-1 font-mono">Wallet Balance</p>
           <p className="text-[#00f5ff] text-xl font-bold font-mono flex items-center gap-2">
-            <img src="/logos/ctc-logo.png" alt="CTC" className="w-5 h-5 rounded-sm" />
+            <img src="/logos/apt-logo.svg" alt="APT" className="w-5 h-5 rounded-sm" />
             {walletBalance.toFixed(4)} {currencySymbol}
           </p>
         </div>

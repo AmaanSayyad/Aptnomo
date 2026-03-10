@@ -5,15 +5,13 @@ import { useStore } from '@/lib/store';
 import { LiveChart } from './';
 import { BalanceDisplay } from '@/components/balance';
 import { startPriceFeed } from '@/lib/store/gameSlice';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { useAccount, useDisconnect } from 'wagmi';
-import { creditCoinTestnet } from '@/lib/ctc/config';
-import { getAddress } from 'viem';
-import { ethers } from 'ethers';
+import { useWallet } from '@aptos-labs/wallet-adapter-react';
+import { getCTCConfig } from '@/lib/ctc/config';
+import { getCreditCoinClient, parseAptToOctas } from '@/lib/ctc/client';
 import { useToast } from '@/lib/hooks/useToast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Loader2, Wallet, Zap } from 'lucide-react';
-import { useSendTransaction, useSwitchChain } from 'wagmi';
+ 
 
 
 export const GameBoard: React.FC = () => {
@@ -49,17 +47,10 @@ export const GameBoard: React.FC = () => {
     setIsConnected
   } = useStore();
 
-  const { wallets } = useWallets();
-  const { logout: logoutPrivy, authenticated, user: privyUser } = usePrivy();
-  const { isConnected: wagmiConnected, isConnecting: wagmiConnecting } = useAccount();
-  const { disconnect: disconnectWagmi } = useDisconnect();
-  const { sendTransactionAsync } = useSendTransaction();
-  const { switchChainAsync } = useSwitchChain();
+  const { account, connected, disconnect, signAndSubmitTransaction } = useWallet() as any;
 
   const handleDisconnect = () => {
-    if (authenticated) logoutPrivy();
-    if (wagmiConnected) disconnectWagmi();
-
+    disconnect();
     disconnectStore();
     setAddress(null);
     setIsConnected(false);
@@ -75,7 +66,7 @@ export const GameBoard: React.FC = () => {
 
   const toast = useToast();
 
-  const currencySymbol = 'CTC';
+  const currencySymbol = 'APT';
   const blitzEntryFee = 0.0001;
 
   // Connection and Authorization status (access code requirement disabled)
@@ -95,37 +86,38 @@ export const GameBoard: React.FC = () => {
 
     try {
       setIsActivatingBlitz(true);
-      toast.info(`Preparing ${blitzEntryFee} CTC Blitz Entry...`);
+      toast.info(`Preparing ${blitzEntryFee} APT Blitz Entry...`);
 
-      // 1. Try WAGMI first if connected
-      if (wagmiConnected) {
-        const hash = await sendTransactionAsync({
-          to: creditCoinTestnet.treasuryAddress as `0x${string}`,
-          value: ethers.parseEther(blitzEntryFee.toString()),
-        });
-        toast.success(`Access granted! Tx: ${hash.slice(0, 6)}...`);
-        enableBlitzAccess();
-        refreshWalletBalance();
-        return;
-      }
-
-      // 2. Fallback to Privy
-      if (authenticated && wallets.length > 0) {
-        const wallet = wallets.find(w => w.address.toLowerCase() === address.toLowerCase());
-        if (!wallet) throw new Error("Linked Privy wallet not found");
-        const provider = await wallet.getEthereumProvider();
-        const ethersProvider = new ethers.BrowserProvider(provider);
-        const signer = await ethersProvider.getSigner();
-        const tx = await signer.sendTransaction({
-          to: creditCoinTestnet.treasuryAddress,
-          value: ethers.parseEther(blitzEntryFee.toString()),
-        });
-        toast.success(`Access granted! Tx: ${tx.hash.slice(0, 6)}...`);
-        enableBlitzAccess();
-        refreshWalletBalance();
-      } else {
+      if (!connected || !account?.address) {
         throw new Error("Please connect your wallet to enter Blitz Round");
       }
+
+      const config = getCTCConfig();
+      const treasuryAddress = config.treasuryAddress;
+      const aptos = getCreditCoinClient().getAptos();
+      const value = parseAptToOctas(blitzEntryFee.toString());
+
+      const transaction = await aptos.transaction.build.simple({
+        sender: account.address,
+        data: {
+          function: '0x1::aptos_account::transfer',
+          functionArguments: [treasuryAddress, value.toString()],
+        },
+      });
+
+      let response = await signAndSubmitTransaction(transaction);
+      let txHash = response?.hash;
+      if (!txHash) {
+        response = await signAndSubmitTransaction({ transaction });
+        txHash = response?.hash;
+      }
+      if (!txHash) {
+        throw new Error('Transaction submission failed');
+      }
+      toast.success(`Access granted! Tx: ${txHash.slice(0, 6)}...`);
+      enableBlitzAccess();
+      refreshWalletBalance();
+      return;
     } catch (err: any) {
       console.error("Blitz entry failed:", err);
       const errorMessage = err.message || "";

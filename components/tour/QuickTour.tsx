@@ -63,7 +63,7 @@ export const QuickTour: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
         ...(isConnected ? [] : [{
             target: '[data-tour="connect-button"]',
             title: 'Welcome! Connect First',
-            content: 'Start by connecting your wallet. We support CreditCoin Testnet for a seamless trading experience.',
+            content: 'Start by connecting your wallet. We support Aptos Mainnet for a seamless trading experience.',
             position: 'bottom' as const
         }]),
         {
@@ -94,7 +94,7 @@ export const QuickTour: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
             target: '[data-tour="deposit-section"]',
             title: 'Manage Your Funds',
             content: isConnected
-                ? 'Easily deposit CTC to start trading. Your house balance is updated instantly.'
+                ? 'Easily deposit APT to start trading. Your house balance is updated instantly.'
                 : 'After connecting, you can manage your deposits and withdrawals right here.',
             position: 'top' as const
         }

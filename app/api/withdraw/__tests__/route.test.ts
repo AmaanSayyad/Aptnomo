@@ -12,7 +12,6 @@
 
 import { POST } from '../route';
 import { NextRequest } from 'next/server';
-import { ethers } from 'ethers';
 import { getTreasuryClient } from '@/lib/ctc/backend-client';
 import { updateHouseBalance, getHouseBalance } from '@/lib/ctc/database';
 
@@ -67,7 +66,7 @@ describe('POST /api/withdraw', () => {
 
     it('should reject request with missing amount', async () => {
       const request = createRequest({
-        userAddress: '0x1234567890123456789012345678901234567890',
+        userAddress: '0x2',
       });
 
       const response = await POST(request);
@@ -94,7 +93,7 @@ describe('POST /api/withdraw', () => {
 
     it('should reject zero amount', async () => {
       const request = createRequest({
-        userAddress: '0x1234567890123456789012345678901234567890',
+        userAddress: '0x2',
         amount: '0',
       });
 
@@ -108,7 +107,7 @@ describe('POST /api/withdraw', () => {
 
     it('should reject negative amount', async () => {
       const request = createRequest({
-        userAddress: '0x1234567890123456789012345678901234567890',
+        userAddress: '0x2',
         amount: '-1.0',
       });
 
@@ -122,7 +121,7 @@ describe('POST /api/withdraw', () => {
 
     it('should reject invalid amount format', async () => {
       const request = createRequest({
-        userAddress: '0x1234567890123456789012345678901234567890',
+        userAddress: '0x2',
         amount: 'not-a-number',
       });
 
@@ -137,7 +136,7 @@ describe('POST /api/withdraw', () => {
 
   describe('Balance Checking', () => {
     const validRequest = {
-      userAddress: '0x1234567890123456789012345678901234567890',
+      userAddress: '0x2',
       amount: '1.5',
     };
 
@@ -191,7 +190,7 @@ describe('POST /api/withdraw', () => {
 
   describe('House Balance Debit', () => {
     const validRequest = {
-      userAddress: '0x1234567890123456789012345678901234567890',
+      userAddress: '0x2',
       amount: '1.5',
     };
 
@@ -235,7 +234,7 @@ describe('POST /api/withdraw', () => {
 
   describe('Treasury Withdrawal Processing', () => {
     const validRequest = {
-      userAddress: '0x1234567890123456789012345678901234567890',
+      userAddress: '0x2',
       amount: '1.5',
     };
 
@@ -253,7 +252,7 @@ describe('POST /api/withdraw', () => {
       // Verify processWithdrawal was called with correct parameters
       expect(mockTreasuryClient.processWithdrawal).toHaveBeenCalledWith(
         validRequest.userAddress,
-        ethers.parseUnits(validRequest.amount, 18)
+        150000000n
       );
     });
 
@@ -280,7 +279,7 @@ describe('POST /api/withdraw', () => {
 
   describe('Balance Revert on Failure', () => {
     const validRequest = {
-      userAddress: '0x1234567890123456789012345678901234567890',
+      userAddress: '0x2',
       amount: '1.5',
     };
 
@@ -366,7 +365,7 @@ describe('POST /api/withdraw', () => {
 
   describe('Error Handling', () => {
     const validRequest = {
-      userAddress: '0x1234567890123456789012345678901234567890',
+      userAddress: '0x2',
       amount: '1.5',
     };
 
@@ -400,17 +399,17 @@ describe('POST /api/withdraw', () => {
 
   describe('Edge Cases', () => {
     it('should handle very large withdrawal amounts', async () => {
-      const largeAmount = '1000000.123456789012345678'; // 1M CTC with full precision
+      const largeAmount = '1000000.12345678'; // 1M APT with full precision
       
       (getHouseBalance as jest.Mock).mockResolvedValue('2000000.0');
-      (updateHouseBalance as jest.Mock).mockResolvedValue('999999.876543210987654322');
+      (updateHouseBalance as jest.Mock).mockResolvedValue('999999.87654322');
       mockTreasuryClient.processWithdrawal.mockResolvedValue({
         success: true,
         txHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
       });
 
       const request = createRequest({
-        userAddress: '0x1234567890123456789012345678901234567890',
+        userAddress: '0x2',
         amount: largeAmount,
       });
 
@@ -422,17 +421,17 @@ describe('POST /api/withdraw', () => {
     });
 
     it('should handle very small withdrawal amounts', async () => {
-      const smallAmount = '0.000000000000000001'; // 1 wei
+      const smallAmount = '0.00000001'; // 1 wei
       
       (getHouseBalance as jest.Mock).mockResolvedValue('1.0');
-      (updateHouseBalance as jest.Mock).mockResolvedValue('0.999999999999999999');
+      (updateHouseBalance as jest.Mock).mockResolvedValue('0.99999999');
       mockTreasuryClient.processWithdrawal.mockResolvedValue({
         success: true,
         txHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
       });
 
       const request = createRequest({
-        userAddress: '0x1234567890123456789012345678901234567890',
+        userAddress: '0x2',
         amount: smallAmount,
       });
 
@@ -445,7 +444,7 @@ describe('POST /api/withdraw', () => {
 
     it('should handle case-insensitive address comparison', async () => {
       const requestWithUpperCase = {
-        userAddress: '0xABCD567890123456789012345678901234567890',
+        userAddress: '0xA1',
         amount: '1.5',
       };
 

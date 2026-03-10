@@ -48,7 +48,7 @@ export default function ReferralPage() {
     };
 
     const shareOnX = () => {
-        const text = encodeURIComponent(`Trade with millisecond precision on @BYNOMOProtocol! 🚀\n\nJoin using my referral link and earn rewards:`);
+        const text = encodeURIComponent(`Trade with millisecond precision on @NOMOProtocol! 🚀\n\nJoin using my referral link and earn rewards:`);
         window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(referralLink)}`, '_blank');
     };
 
@@ -93,7 +93,7 @@ export default function ReferralPage() {
                         transition={{ delay: 0.2 }}
                         className="text-gray-500 max-w-md mx-auto"
                     >
-                        Invite your friends to Bynomo and climb the leaderboard. Each new trader using your code gets you closer to the top.
+                        Invite your friends to NOMO and climb the leaderboard. Each new trader using your code gets you closer to the top.
                     </motion.p>
                 </header>
 

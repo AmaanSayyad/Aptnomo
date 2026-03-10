@@ -3,7 +3,6 @@
  */
 
 import { CreditCoinClient } from '../client';
-import { ethers } from 'ethers';
 
 describe('CreditCoinClient', () => {
   describe('constructor', () => {
@@ -17,41 +16,36 @@ describe('CreditCoinClient', () => {
       expect(client).toBeInstanceOf(CreditCoinClient);
     });
 
-    it('should create client with private key for signing', () => {
-      const privateKey = '0x' + '1'.repeat(64); // Valid private key format
-      const client = new CreditCoinClient(undefined, privateKey);
-      expect(client).toBeInstanceOf(CreditCoinClient);
-    });
   });
 
   describe('formatCTC', () => {
     it('should format 1 CTC correctly', () => {
       const client = new CreditCoinClient();
-      const amount = ethers.parseUnits('1', 18);
-      expect(client.formatCTC(amount)).toBe('1.0');
+      const amount = 100000000n;
+      expect(client.formatCTC(amount)).toBe('1');
     });
 
     it('should format 0 CTC correctly', () => {
       const client = new CreditCoinClient();
-      expect(client.formatCTC(0n)).toBe('0.0');
+      expect(client.formatCTC(0n)).toBe('0');
     });
 
     it('should format fractional CTC correctly', () => {
       const client = new CreditCoinClient();
-      const amount = ethers.parseUnits('1.5', 18);
+      const amount = 150000000n;
       expect(client.formatCTC(amount)).toBe('1.5');
     });
 
     it('should format very small amounts correctly', () => {
       const client = new CreditCoinClient();
-      const amount = 1n; // 1 wei
-      expect(client.formatCTC(amount)).toBe('0.000000000000000001');
+      const amount = 1n; // 1 octa
+      expect(client.formatCTC(amount)).toBe('0.00000001');
     });
 
     it('should format large amounts correctly', () => {
       const client = new CreditCoinClient();
-      const amount = ethers.parseUnits('1000000', 18);
-      expect(client.formatCTC(amount)).toBe('1000000.0');
+      const amount = 1000000n * 100000000n;
+      expect(client.formatCTC(amount)).toBe('1000000');
     });
   });
 
@@ -59,7 +53,7 @@ describe('CreditCoinClient', () => {
     it('should parse 1 CTC correctly', () => {
       const client = new CreditCoinClient();
       const amount = client.parseCTC('1');
-      expect(amount).toBe(ethers.parseUnits('1', 18));
+      expect(amount).toBe(100000000n);
     });
 
     it('should parse 0 CTC correctly', () => {
@@ -71,24 +65,29 @@ describe('CreditCoinClient', () => {
     it('should parse fractional CTC correctly', () => {
       const client = new CreditCoinClient();
       const amount = client.parseCTC('1.5');
-      expect(amount).toBe(ethers.parseUnits('1.5', 18));
+      expect(amount).toBe(150000000n);
     });
 
     it('should throw error for invalid format', () => {
       const client = new CreditCoinClient();
-      expect(() => client.parseCTC('invalid')).toThrow('Invalid CTC amount format');
+      expect(() => client.parseCTC('invalid')).toThrow('Invalid APT amount format: invalid');
     });
 
     it('should throw error for empty string', () => {
       const client = new CreditCoinClient();
-      expect(() => client.parseCTC('')).toThrow('Invalid CTC amount format');
+      expect(() => client.parseCTC('')).toThrow('Invalid APT amount format: empty');
+    });
+
+    it('should throw error for too many decimals', () => {
+      const client = new CreditCoinClient();
+      expect(() => client.parseCTC('1.000000001')).toThrow('APT amount has too many decimals');
     });
   });
 
   describe('formatCTC and parseCTC round-trip', () => {
     it('should maintain precision for round-trip conversion', () => {
       const client = new CreditCoinClient();
-      const original = ethers.parseUnits('123.456789012345678', 18);
+      const original = 12345678901n; // 123.45678901 APT
       const formatted = client.formatCTC(original);
       const parsed = client.parseCTC(formatted);
       expect(parsed).toBe(original);
@@ -96,7 +95,7 @@ describe('CreditCoinClient', () => {
 
     it('should maintain precision for very small amounts', () => {
       const client = new CreditCoinClient();
-      const original = 1n; // 1 wei
+      const original = 1n; // 1 octa
       const formatted = client.formatCTC(original);
       const parsed = client.parseCTC(formatted);
       expect(parsed).toBe(original);
@@ -104,43 +103,10 @@ describe('CreditCoinClient', () => {
 
     it('should maintain precision for very large amounts', () => {
       const client = new CreditCoinClient();
-      const original = ethers.parseUnits('999999999.999999999999999999', 18);
+      const original = 99999999999999999n; // 999,999,999.99999999 APT
       const formatted = client.formatCTC(original);
       const parsed = client.parseCTC(formatted);
       expect(parsed).toBe(original);
-    });
-  });
-
-  describe('sendTransaction validation', () => {
-    it('should throw error when no signer configured', async () => {
-      const client = new CreditCoinClient();
-      await expect(
-        client.sendTransaction('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb', 1000n)
-      ).rejects.toThrow('No signer configured');
-    });
-
-    it('should throw error for invalid recipient address', async () => {
-      const privateKey = '0x' + '1'.repeat(64);
-      const client = new CreditCoinClient(undefined, privateKey);
-      await expect(
-        client.sendTransaction('invalid-address', 1000n)
-      ).rejects.toThrow('Invalid recipient address');
-    });
-
-    it('should throw error for zero amount', async () => {
-      const privateKey = '0x' + '1'.repeat(64);
-      const client = new CreditCoinClient(undefined, privateKey);
-      await expect(
-        client.sendTransaction('0x1234567890123456789012345678901234567890', 0n)
-      ).rejects.toThrow('Transaction amount must be greater than 0');
-    });
-
-    it('should throw error for negative amount', async () => {
-      const privateKey = '0x' + '1'.repeat(64);
-      const client = new CreditCoinClient(undefined, privateKey);
-      await expect(
-        client.sendTransaction('0x1234567890123456789012345678901234567890', -1n)
-      ).rejects.toThrow('Transaction amount must be greater than 0');
     });
   });
 

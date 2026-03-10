@@ -1,9 +1,14 @@
-import { ethers } from 'ethers';
+import { AccountAddress } from '@aptos-labs/ts-sdk';
 
 /**
- * Validates CTC (EVM) wallet addresses only.
+ * Validates Aptos wallet addresses only.
  */
 export async function isValidAddress(address: string): Promise<boolean> {
   if (!address) return false;
-  return ethers.isAddress(address);
+  try {
+    AccountAddress.from(address);
+    return true;
+  } catch {
+    return false;
+  }
 }

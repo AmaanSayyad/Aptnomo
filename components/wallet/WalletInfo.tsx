@@ -1,38 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { useAccount, useBalance } from 'wagmi';
-import { formatUnits } from 'ethers';
+import React, { useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { useBynomoStore } from '@/lib/store';
 
 export const WalletInfo: React.FC = () => {
-  const { network, address, isConnected, walletBalance, refreshWalletBalance } = useBynomoStore();
+  const { address, isConnected, walletBalance, refreshWalletBalance } = useBynomoStore();
 
-  // Polling for balance updates
   useEffect(() => {
     if (isConnected && address) {
       refreshWalletBalance();
       const interval = setInterval(() => {
         refreshWalletBalance();
-      }, 10000); // Poll every 10s
+      }, 10000);
       return () => clearInterval(interval);
     }
-  }, [isConnected, address, network]);
+  }, [isConnected, address, refreshWalletBalance]);
 
   if (!isConnected || !address) {
     return null;
   }
 
-  // Format address
   const formatAddress = (addr: string) => {
     if (addr.length <= 10) return addr;
     return `${addr.slice(0, 5)}...${addr.slice(-4)}`;
   };
 
-  const currencySymbol = 'CTC';
-  const networkName = 'CreditCoin Testnet';
+  const currencySymbol = 'APT';
+  const networkName = 'Aptos Mainnet';
 
   const balance = walletBalance.toFixed(4);
-  const isLoading = false; // Store doesn't have isLoading for wallet balance yet, but fetch is fast
+  const isLoading = false;
 
   return (
     <Card className="min-w-[200px] border border-white/10 !bg-black/40 backdrop-blur-md">
@@ -40,7 +36,7 @@ export const WalletInfo: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center p-1 border border-white/10 shrink-0">
             <img
-              src="/logos/ctc-logo.png"
+              src="/logos/apt-logo.svg"
               alt={networkName}
               className="w-full h-full object-contain rounded-sm"
             />

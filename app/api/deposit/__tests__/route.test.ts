@@ -10,7 +10,6 @@
 
 import { POST } from '../route';
 import { NextRequest, NextResponse } from 'next/server';
-import { ethers } from 'ethers';
 import { CreditCoinClient } from '@/lib/ctc/client';
 import { updateHouseBalance } from '@/lib/ctc/database';
 import { creditCoinTestnet } from '@/lib/ctc/config';
@@ -31,7 +30,7 @@ jest.mock('@/lib/ctc/client');
 jest.mock('@/lib/ctc/database');
 jest.mock('@/lib/ctc/config', () => ({
   creditCoinTestnet: {
-    treasuryAddress: '0x71197e7a1CA5A2cb2AD82432B924F69B1E3dB123',
+    treasuryAddress: '0xa1',
   },
 }));
 
@@ -43,8 +42,7 @@ describe('POST /api/deposit', () => {
     
     // Setup mock client
     mockClient = {
-      waitForTransaction: jest.fn(),
-      formatCTC: jest.fn((amount: bigint) => (Number(amount) / 1e18).toString()),
+      getTransactionByHash: jest.fn(),
     } as any;
 
     (CreditCoinClient as jest.MockedClass<typeof CreditCoinClient>).mockImplementation(() => mockClient);
@@ -177,13 +175,13 @@ describe('POST /api/deposit', () => {
 
   describe('Transaction Verification', () => {
     const validRequest = {
-      userAddress: '0x1234567890123456789012345678901234567890',
+      userAddress: '0x2',
       txHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
       amount: '1.5',
     };
 
     it('should reject if transaction fetch fails', async () => {
-      mockClient.waitForTransaction.mockRejectedValue(new Error('RPC error'));
+      mockClient.getTransactionByHash.mockRejectedValue(new Error('RPC error'));
 
       const request = createRequest(validRequest);
       const response = await POST(request);
@@ -195,14 +193,15 @@ describe('POST /api/deposit', () => {
     });
 
     it('should reject if transaction failed on blockchain', async () => {
-      mockClient.waitForTransaction.mockResolvedValue({
-        transactionHash: validRequest.txHash,
-        blockNumber: 12345,
-        from: validRequest.userAddress,
-        to: creditCoinTestnet.treasuryAddress,
-        value: ethers.parseUnits(validRequest.amount, 18),
-        status: 'failed',
-        gasUsed: BigInt(21000),
+      mockClient.getTransactionByHash.mockResolvedValue({
+        type: 'user_transaction',
+        success: false,
+        sender: validRequest.userAddress,
+        payload: {
+          function: '0x1::aptos_account::transfer',
+          type_arguments: [],
+          arguments: [creditCoinTestnet.treasuryAddress, '150000000'],
+        },
       });
 
       const request = createRequest(validRequest);
@@ -215,14 +214,15 @@ describe('POST /api/deposit', () => {
     });
 
     it('should reject if recipient is not treasury address', async () => {
-      mockClient.waitForTransaction.mockResolvedValue({
-        transactionHash: validRequest.txHash,
-        blockNumber: 12345,
-        from: validRequest.userAddress,
-        to: '0x9999999999999999999999999999999999999999', // Wrong address
-        value: ethers.parseUnits(validRequest.amount, 18),
-        status: 'success',
-        gasUsed: BigInt(21000),
+      mockClient.getTransactionByHash.mockResolvedValue({
+        type: 'user_transaction',
+        success: true,
+        sender: validRequest.userAddress,
+        payload: {
+          function: '0x1::aptos_account::transfer',
+          type_arguments: [],
+          arguments: ['0x3', '150000000'], // Wrong address
+        },
       });
 
       const request = createRequest(validRequest);
@@ -235,14 +235,15 @@ describe('POST /api/deposit', () => {
     });
 
     it('should reject if amount does not match', async () => {
-      mockClient.waitForTransaction.mockResolvedValue({
-        transactionHash: validRequest.txHash,
-        blockNumber: 12345,
-        from: validRequest.userAddress,
-        to: creditCoinTestnet.treasuryAddress,
-        value: ethers.parseUnits('2.0', 18), // Different amount
-        status: 'success',
-        gasUsed: BigInt(21000),
+      mockClient.getTransactionByHash.mockResolvedValue({
+        type: 'user_transaction',
+        success: true,
+        sender: validRequest.userAddress,
+        payload: {
+          function: '0x1::aptos_account::transfer',
+          type_arguments: [],
+          arguments: [creditCoinTestnet.treasuryAddress, '200000000'], // Different amount
+        },
       });
 
       const request = createRequest(validRequest);
@@ -255,14 +256,15 @@ describe('POST /api/deposit', () => {
     });
 
     it('should reject if sender does not match user address', async () => {
-      mockClient.waitForTransaction.mockResolvedValue({
-        transactionHash: validRequest.txHash,
-        blockNumber: 12345,
-        from: '0x9999999999999999999999999999999999999999', // Different sender
-        to: creditCoinTestnet.treasuryAddress,
-        value: ethers.parseUnits(validRequest.amount, 18),
-        status: 'success',
-        gasUsed: BigInt(21000),
+      mockClient.getTransactionByHash.mockResolvedValue({
+        type: 'user_transaction',
+        success: true,
+        sender: '0x3', // Different sender
+        payload: {
+          function: '0x1::aptos_account::transfer',
+          type_arguments: [],
+          arguments: [creditCoinTestnet.treasuryAddress, '150000000'],
+        },
       });
 
       const request = createRequest(validRequest);
@@ -277,21 +279,22 @@ describe('POST /api/deposit', () => {
 
   describe('Successful Deposit', () => {
     const validRequest = {
-      userAddress: '0x1234567890123456789012345678901234567890',
+      userAddress: '0x2',
       txHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
       amount: '1.5',
     };
 
     it('should credit house balance on valid deposit', async () => {
       // Mock successful transaction verification
-      mockClient.waitForTransaction.mockResolvedValue({
-        transactionHash: validRequest.txHash,
-        blockNumber: 12345,
-        from: validRequest.userAddress,
-        to: creditCoinTestnet.treasuryAddress,
-        value: ethers.parseUnits(validRequest.amount, 18),
-        status: 'success',
-        gasUsed: BigInt(21000),
+      mockClient.getTransactionByHash.mockResolvedValue({
+        type: 'user_transaction',
+        success: true,
+        sender: validRequest.userAddress,
+        payload: {
+          function: '0x1::aptos_account::transfer',
+          type_arguments: [],
+          arguments: [creditCoinTestnet.treasuryAddress, '150000000'],
+        },
       });
 
       // Mock balance update
@@ -317,17 +320,18 @@ describe('POST /api/deposit', () => {
     it('should handle case-insensitive address comparison', async () => {
       const requestWithUpperCase = {
         ...validRequest,
-        userAddress: '0xABCD567890123456789012345678901234567890',
+        userAddress: '0xA1',
       };
 
-      mockClient.waitForTransaction.mockResolvedValue({
-        transactionHash: validRequest.txHash,
-        blockNumber: 12345,
-        from: requestWithUpperCase.userAddress.toLowerCase(),
-        to: creditCoinTestnet.treasuryAddress.toUpperCase(), // Different case
-        value: ethers.parseUnits(validRequest.amount, 18),
-        status: 'success',
-        gasUsed: BigInt(21000),
+      mockClient.getTransactionByHash.mockResolvedValue({
+        type: 'user_transaction',
+        success: true,
+        sender: requestWithUpperCase.userAddress.toLowerCase(),
+        payload: {
+          function: '0x1::aptos_account::transfer',
+          type_arguments: [],
+          arguments: ['0xA1', '150000000'],
+        },
       });
 
       (updateHouseBalance as jest.Mock).mockResolvedValue('10.5');
@@ -343,20 +347,21 @@ describe('POST /api/deposit', () => {
 
   describe('Database Error Handling', () => {
     const validRequest = {
-      userAddress: '0x1234567890123456789012345678901234567890',
+      userAddress: '0x2',
       txHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
       amount: '1.5',
     };
 
     it('should return 503 if database connection fails', async () => {
-      mockClient.waitForTransaction.mockResolvedValue({
-        transactionHash: validRequest.txHash,
-        blockNumber: 12345,
-        from: validRequest.userAddress,
-        to: creditCoinTestnet.treasuryAddress,
-        value: ethers.parseUnits(validRequest.amount, 18),
-        status: 'success',
-        gasUsed: BigInt(21000),
+      mockClient.getTransactionByHash.mockResolvedValue({
+        type: 'user_transaction',
+        success: true,
+        sender: validRequest.userAddress,
+        payload: {
+          function: '0x1::aptos_account::transfer',
+          type_arguments: [],
+          arguments: [creditCoinTestnet.treasuryAddress, '150000000'],
+        },
       });
 
       (updateHouseBalance as jest.Mock).mockRejectedValue(new Error('Database connection failed'));

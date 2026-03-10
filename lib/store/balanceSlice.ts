@@ -34,7 +34,7 @@ export interface BalanceState {
 export const createBalanceSlice: StateCreator<BalanceState> = (set, get) => ({
   // Initial state
   houseBalance: 0,
-  demoBalance: 10000, // 10,000 demo CTC to start
+  demoBalance: 10000, // 10,000 demo APT to start
   accountType: (typeof window !== 'undefined' && localStorage.getItem('binomo_account_type') as 'real' | 'demo') || 'real', // Persist account type
   userTier: 'free',
   isLoading: false,
@@ -47,8 +47,8 @@ export const createBalanceSlice: StateCreator<BalanceState> = (set, get) => ({
    */
   fetchBalance: async (address: string) => {
     const { accountType } = get();
-    // CTC-only: always use CTC as currency
-    const network = 'CTC';
+    // APT-only: always use APT as currency
+    const network = 'APT';
 
     // Skip API fetch for demo mode as it uses local state only
     if (!address || accountType === 'demo' || address.startsWith('0xDEMO')) {
@@ -135,8 +135,8 @@ export const createBalanceSlice: StateCreator<BalanceState> = (set, get) => ({
    * @param txHash - Transaction hash for audit trail
    */
   depositFunds: async (address: string, amount: number, txHash: string) => {
-    // CTC-only: always use CTC as currency
-    const network = 'CTC';
+    // APT-only: always use APT as currency
+    const network = 'APT';
 
     try {
       set({ isLoading: true, error: null });
@@ -188,8 +188,8 @@ export const createBalanceSlice: StateCreator<BalanceState> = (set, get) => ({
    * @param amount - Withdrawal amount
    */
   withdrawFunds: async (address: string, amount: number) => {
-    // CTC-only: always use CTC as currency
-    const network = 'CTC';
+    // APT-only: always use APT as currency
+    const network = 'APT';
 
     try {
       set({ isLoading: true, error: null });

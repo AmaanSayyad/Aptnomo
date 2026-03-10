@@ -1,18 +1,18 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useBynomoStore } from '@/lib/store';
+import { useNOMOStore } from '@/lib/store';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * SettlementNotification Component
- * Displays a BYNOMO-style popup when a bet is settled (win or loss)
+ * Displays a NOMO-style popup when a bet is settled (win or loss)
  */
 export const SettlementNotification: React.FC = () => {
-    const lastResult = useBynomoStore(state => state.lastResult);
-    const clearLastResult = useBynomoStore(state => state.clearLastResult);
-    const accountType = useBynomoStore(state => state.accountType);
-    const network = useBynomoStore(state => state.network);
+    const lastResult = useNOMOStore(state => state.lastResult);
+    const clearLastResult = useNOMOStore(state => state.clearLastResult);
+    const accountType = useNOMOStore(state => state.accountType);
+    const network = useNOMOStore(state => state.network);
 
     const [visible, setVisible] = useState(false);
 
@@ -53,10 +53,10 @@ export const SettlementNotification: React.FC = () => {
 
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black uppercase tracking-tighter leading-none opacity-60">
-                                    {(lastResult.currency || 'CTC')} {lastResult.won ? 'PROFIT' : 'LOSS'}
+                                    {(lastResult.currency || 'APT')} {lastResult.won ? 'PROFIT' : 'LOSS'}
                                 </span>
                                 <span className="text-sm font-mono font-black tracking-tight leading-tight">
-                                    {lastResult.won ? '+' : '-'}{Math.abs(lastResult.won ? lastResult.payout : lastResult.amount).toFixed(4)} <span className="text-[10px] opacity-70">{lastResult.currency || 'CTC'}</span>
+                                    {lastResult.won ? '+' : '-'}{Math.abs(lastResult.won ? lastResult.payout : lastResult.amount).toFixed(4)} <span className="text-[10px] opacity-70">{lastResult.currency || 'APT'}</span>
                                 </span>
                             </div>
 
@@ -76,5 +76,4 @@ export const SettlementNotification: React.FC = () => {
         </AnimatePresence>
     );
 };
-
 

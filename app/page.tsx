@@ -13,12 +13,12 @@ const steps = [
     {
         id: "01",
         title: "Hybrid Custody",
-        desc: "CreditCoin Testnet performance with non-custodial security. Bynomo connects your wallet to a high-speed house balance for instant execution without gas lag."
+        desc: "Aptos Mainnet performance with non-custodial security. NOMO connects your wallet to a high-speed house balance for instant execution without gas lag."
     },
     {
         id: "02",
         title: "Multi-Asset Feed",
-        desc: "Trade more than just crypto. Predict millisecond movements on Bitcoin, CTC, Gold, and Tech giants like NVDA and TSLA via Pyth Fixed Oracles."
+        desc: "Trade more than just crypto. Predict millisecond movements on Bitcoin, APT, Gold, and Tech giants like NVDA and TSLA via Pyth Fixed Oracles."
     },
     {
         id: "03",
@@ -36,7 +36,7 @@ const testimonials = [
     {
         name: "Astra Vance",
         role: "Venture Strategist",
-        content: "The Blitz Rounds are a game-changer. The millisecond precision from Pyth Oracles makes Bynomo feel like a professional CEX but with decentralized peace of mind.",
+        content: "The Blitz Rounds are a game-changer. The millisecond precision from Pyth Oracles makes NOMO feel like a professional CEX but with decentralized peace of mind.",
         avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop"
     },
     {
@@ -48,19 +48,19 @@ const testimonials = [
     {
         name: "Kai Zen",
         role: "Algo Developer",
-        content: "Migrating to the Bynomo protocol was the best move. Instant house balance settlement solves the on-chain latency issue perfectly for high-frequency binary options.",
+        content: "Migrating to the NOMO protocol was the best move. Instant house balance settlement solves the on-chain latency issue perfectly for high-frequency binary options.",
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop"
     },
     {
         name: "Julian Vane",
         role: "Quant Trader",
-        content: "Bynomo's tiered system provides a clear roadmap for traders. The VIP perks and advanced indicators give us a significant edge in these fast-moving rounds.",
+        content: "NOMO's tiered system provides a clear roadmap for traders. The VIP perks and advanced indicators give us a significant edge in these fast-moving rounds.",
         avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop"
     },
     {
         name: "Sarah M.",
         role: "Early Adopter",
-        content: "Switching between Bitcoin and Gold predictions within seconds is what makes Bynomo stand out. The multi-asset support is truly elite.",
+        content: "Switching between Bitcoin and Gold predictions within seconds is what makes NOMO stand out. The multi-asset support is truly elite.",
         avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200&auto=format&fit=crop"
     }
 ];
@@ -68,11 +68,11 @@ const testimonials = [
 const faqs = [
     {
         question: "How does the House Balance work?",
-        answer: "To ensure millisecond execution, Bynomo uses a hybrid house balance system. You deposit CTC on CreditCoin Testnet into a non-custodial treasury, which is then reflected in your game balance for instant off-chain betting."
+        answer: "To ensure millisecond execution, NOMO uses a hybrid house balance system. You deposit APT on Aptos Mainnet into a non-custodial treasury, which is then reflected in your game balance for instant off-chain betting."
     },
     {
         question: "What assets can I trade?",
-        answer: "Bynomo supports a wide range of assets including major cryptos (BTC, ETH, CTC), precious metals (Gold, Silver), and top-tier stocks (AAPL, NVDA, TSLA) through Pyth price feeds."
+        answer: "NOMO supports a wide range of assets including major cryptos (BTC, ETH, APT), precious metals (Gold, Silver), and top-tier stocks (AAPL, NVDA, TSLA) through Pyth price feeds."
     },
     {
         question: "What are Blitz Rounds?",
@@ -84,7 +84,7 @@ const faqs = [
     },
     {
         question: "Are my funds safe?",
-        answer: "Yes. All deposits are held in a secure treasury wallet verified on-chain. Withdrawals are processed through the Bynomo protocol, ensuring you maintain ultimate control over your assets."
+        answer: "Yes. All deposits are held in a secure treasury wallet verified on-chain. Withdrawals are processed through the NOMO protocol, ensuring you maintain ultimate control over your assets."
     }
 ];
 
@@ -188,7 +188,7 @@ export default function WaitlistPage() {
                             }}
                             className="flex"
                         >
-                            {Array.from("CREDITNOMO").map((letter, index) => (
+                            {Array.from("NOMO").map((letter, index) => (
                                 <motion.h1
                                     key={index}
                                     variants={{
@@ -395,15 +395,15 @@ export default function WaitlistPage() {
 
             {/* FOOTER SECTION */}
             <footer className="py-24 px-10 border-t border-white/5 bg-black relative z-10 w-full overflow-hidden">
-                <div className="huge-footer-logo">CREDITNOMO</div>
+                <div className="huge-footer-logo">NOMO</div>
 
                 <div className="footer-meta">
                     <div className="footer-meta-item">2026 © All rights reserved</div>
 
                     <div className="footer-link-group">
-                        <a href="https://creditcoin.org" target="_blank" rel="noopener noreferrer" className="footer-meta-item">CreditCoin</a>
-                        <a href="https://docs.creditcoin.org" target="_blank" rel="noopener noreferrer" className="footer-meta-item">Documentation</a>
-                        <a href="https://creditcoin-testnet.blockscout.com" target="_blank" rel="noopener noreferrer" className="footer-meta-item">Explorer</a>
+                        <a href="https://aptosfoundation.org" target="_blank" rel="noopener noreferrer" className="footer-meta-item">Aptos</a>
+                        <a href="https://aptos.dev" target="_blank" rel="noopener noreferrer" className="footer-meta-item">Documentation</a>
+                        <a href="https://explorer.aptoslabs.com/?network=mainnet" target="_blank" rel="noopener noreferrer" className="footer-meta-item">Explorer</a>
                     </div>
 
                     <div className="footer-link-group">

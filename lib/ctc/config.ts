@@ -1,16 +1,16 @@
 /**
- * CreditCoin Testnet Configuration
- * 
- * This module provides the network configuration for CreditCoin testnet,
- * including chain parameters, RPC endpoints, and treasury wallet address.
- * 
+ * Aptos Mainnet Configuration
+ *
+ * This module provides the network configuration for Aptos mainnet,
+ * including RPC endpoints, explorer URLs, and treasury wallet address.
+ *
  * Environment variables are used with fallback values for development.
  */
 
 // Import environment validation (runs on server-side only)
 import './env-validation';
 
-export interface CreditCoinConfig {
+export interface AptosConfig {
   chainId: number;
   chainName: string;
   nativeCurrency: {
@@ -21,58 +21,63 @@ export interface CreditCoinConfig {
   rpcUrls: string[];
   blockExplorerUrls: string[];
   treasuryAddress: string;
+  network: 'mainnet' | 'testnet' | 'devnet';
 }
 
 /**
- * CreditCoin Testnet Configuration
- * 
- * Chain ID: 102031
- * Native Token: CTC (18 decimals)
- * RPC: https://rpc.cc3-testnet.creditcoin.network
- * Explorer: https://creditcoin-testnet.blockscout.com
- * Treasury: 0x71197e7a1CA5A2cb2AD82432B924F69B1E3dB123
+ * Aptos Mainnet Configuration
+ *
+ * Chain ID: 1
+ * Native Token: APT (8 decimals)
+ * RPC: https://fullnode.mainnet.aptoslabs.com/v1
+ * Explorer: https://explorer.aptoslabs.com
+ * Treasury: set via NEXT_PUBLIC_APTOS_TREASURY_ADDRESS
  */
-export const creditCoinTestnet: CreditCoinConfig = {
-  chainId: Number(process.env.NEXT_PUBLIC_CREDITCOIN_TESTNET_CHAIN_ID) || 102031,
-  chainName: "CreditCoin Testnet",
+export const creditCoinTestnet: AptosConfig = {
+  chainId: Number(process.env.NEXT_PUBLIC_APTOS_MAINNET_CHAIN_ID) || 1,
+  chainName: "Aptos Mainnet",
   nativeCurrency: {
-    name: "CreditCoin",
-    symbol: process.env.NEXT_PUBLIC_CREDITCOIN_TESTNET_CURRENCY_SYMBOL || "CTC",
-    decimals: Number(process.env.NEXT_PUBLIC_CREDITCOIN_TESTNET_CURRENCY_DECIMALS) || 18,
+    name: "Aptos",
+    symbol: process.env.NEXT_PUBLIC_APTOS_MAINNET_CURRENCY_SYMBOL || "APT",
+    decimals: Number(process.env.NEXT_PUBLIC_APTOS_MAINNET_CURRENCY_DECIMALS) || 8,
   },
   rpcUrls: [
-    process.env.NEXT_PUBLIC_CREDITCOIN_TESTNET_RPC || "https://rpc.cc3-testnet.creditcoin.network"
+    process.env.NEXT_PUBLIC_APTOS_MAINNET_RPC || "https://fullnode.mainnet.aptoslabs.com/v1"
   ],
   blockExplorerUrls: [
-    process.env.NEXT_PUBLIC_CREDITCOIN_TESTNET_EXPLORER || "https://creditcoin-testnet.blockscout.com"
+    process.env.NEXT_PUBLIC_APTOS_MAINNET_EXPLORER || "https://explorer.aptoslabs.com"
   ],
-  treasuryAddress: process.env.NEXT_PUBLIC_CREDITCOIN_TREASURY_ADDRESS || "0x71197e7a1CA5A2cb2AD82432B924F69B1E3dB123",
+  treasuryAddress:
+    process.env.NEXT_PUBLIC_APTOS_TREASURY_ADDRESS ||
+    process.env.APTOS_TREASURY_ADDRESS ||
+    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  network: 'mainnet',
 };
 
 /**
- * Get the full CreditCoin Testnet Configuration
+ * Get the full Aptos Mainnet Configuration
  */
-export function getCTCConfig(): CreditCoinConfig {
+export function getCTCConfig(): AptosConfig {
   return creditCoinTestnet;
 }
 
 /**
- * Get the primary RPC URL for CreditCoin testnet
+ * Get the primary RPC URL for Aptos mainnet
  */
 export function getRpcUrl(): string {
   return creditCoinTestnet.rpcUrls[0];
 }
 
 /**
- * Get the block explorer URL for a transaction
+ * Get the Aptos explorer URL for a transaction
  */
 export function getExplorerTxUrl(txHash: string): string {
-  return `${creditCoinTestnet.blockExplorerUrls[0]}/tx/${txHash}`;
+  return `${creditCoinTestnet.blockExplorerUrls[0]}/txn/${txHash}?network=mainnet`;
 }
 
 /**
- * Get the block explorer URL for an address
+ * Get the Aptos explorer URL for an address
  */
 export function getExplorerAddressUrl(address: string): string {
-  return `${creditCoinTestnet.blockExplorerUrls[0]}/address/${address}`;
+  return `${creditCoinTestnet.blockExplorerUrls[0]}/account/${address}?network=mainnet`;
 }

@@ -1,6 +1,6 @@
 /**
- * Tests for CTC Bet Management API
- * Task: 7.1 Update app/api/bet/route.ts to handle CTC bets
+ * Tests for APT Bet Management API
+ * Task: 7.1 Update app/api/bet/route.ts to handle APT bets
  */
 
 import { POST } from '../route';
@@ -38,7 +38,7 @@ describe('POST /api/bet', () => {
   };
 
   describe('Bet Placement', () => {
-    it('should successfully place a bet and deduct CTC from house balance', async () => {
+    it('should successfully place a bet and deduct APT from house balance', async () => {
       // Mock successful balance deduction
       (supabase.rpc as jest.Mock).mockResolvedValueOnce({
         data: { success: true, error: null, new_balance: 90.5 },
@@ -55,7 +55,7 @@ describe('POST /api/bet', () => {
         action: 'place',
         userAddress: '0x1234567890123456789012345678901234567890',
         betAmount: '10.5',
-        asset: 'CTC',
+        asset: 'APT',
         direction: 'UP',
         multiplier: '1.9',
         strikePrice: '50000.123456789012345678',
@@ -74,16 +74,16 @@ describe('POST /api/bet', () => {
       expect(supabase.rpc).toHaveBeenCalledWith('deduct_balance_for_bet', {
         p_user_address: '0x1234567890123456789012345678901234567890',
         p_bet_amount: 10.5,
-        p_currency: 'CTC',
+        p_currency: 'APT',
       });
 
-      // Verify bet was recorded in bet_history with CTC metadata
+      // Verify bet was recorded in bet_history with APT metadata
       expect(supabase.from).toHaveBeenCalledWith('bet_history');
       expect(mockFrom.insert).toHaveBeenCalledWith(
-        expect.objectContaining({
+        expect.objeAPTontaining({
           wallet_address: '0x1234567890123456789012345678901234567890',
-          asset: 'CTC',
-          network: 'CTC',
+          asset: 'APT',
+          network: 'APT',
           direction: 'UP',
           amount: '10.5',
           multiplier: '1.9',
@@ -104,7 +104,7 @@ describe('POST /api/bet', () => {
         action: 'place',
         userAddress: '0x1234567890123456789012345678901234567890',
         betAmount: '10.5',
-        asset: 'CTC',
+        asset: 'APT',
         direction: 'UP',
         multiplier: '1.9',
         strikePrice: '50000.0',
@@ -122,7 +122,7 @@ describe('POST /api/bet', () => {
         action: 'place',
         userAddress: 'invalid-address',
         betAmount: '10.5',
-        asset: 'CTC',
+        asset: 'APT',
         direction: 'UP',
         multiplier: '1.9',
         strikePrice: '50000.0',
@@ -140,7 +140,7 @@ describe('POST /api/bet', () => {
         action: 'place',
         userAddress: '0x1234567890123456789012345678901234567890',
         betAmount: '0',
-        asset: 'CTC',
+        asset: 'APT',
         direction: 'UP',
         multiplier: '1.9',
         strikePrice: '50000.0',
@@ -158,7 +158,7 @@ describe('POST /api/bet', () => {
         action: 'place',
         userAddress: '0x1234567890123456789012345678901234567890',
         betAmount: '10.5',
-        asset: 'CTC',
+        asset: 'APT',
         direction: 'UP',
         multiplier: '0.5',
         strikePrice: '50000.0',
@@ -176,7 +176,7 @@ describe('POST /api/bet', () => {
         action: 'place',
         userAddress: '0x1234567890123456789012345678901234567890',
         betAmount: '10.5',
-        asset: 'CTC',
+        asset: 'APT',
         direction: 'INVALID',
         multiplier: '1.9',
         strikePrice: '50000.0',
@@ -205,7 +205,7 @@ describe('POST /api/bet', () => {
   });
 
   describe('Bet Settlement', () => {
-    it('should successfully settle a winning bet and credit CTC payout', async () => {
+    it('should successfully settle a winning bet and credit APT payout', async () => {
       // Mock bet fetch
       const mockSelect = {
         eq: jest.fn().mockReturnThis(),
@@ -259,7 +259,7 @@ describe('POST /api/bet', () => {
       expect(supabase.rpc).toHaveBeenCalledWith('credit_balance_for_payout', {
         p_user_address: '0x1234567890123456789012345678901234567890',
         p_payout_amount: 19.95,
-        p_currency: 'CTC',
+        p_currency: 'APT',
         p_bet_id: 'bet_123',
       });
 
@@ -547,7 +547,7 @@ describe('POST /api/bet', () => {
   });
 
   describe('18 Decimal Precision', () => {
-    it('should handle CTC amounts with 18 decimal precision', async () => {
+    it('should handle APT amounts with 18 decimal precision', async () => {
       // Mock successful balance deduction
       (supabase.rpc as jest.Mock).mockResolvedValueOnce({
         data: { success: true, error: null, new_balance: 89.123456789012345678 },
@@ -564,7 +564,7 @@ describe('POST /api/bet', () => {
         action: 'place',
         userAddress: '0x1234567890123456789012345678901234567890',
         betAmount: '10.876543210987654321',
-        asset: 'CTC',
+        asset: 'APT',
         direction: 'UP',
         multiplier: '1.9',
         strikePrice: '50000.123456789012345678',
@@ -578,7 +578,7 @@ describe('POST /api/bet', () => {
 
       // Verify bet was recorded with full precision
       expect(mockFrom.insert).toHaveBeenCalledWith(
-        expect.objectContaining({
+        expect.objeAPTontaining({
           amount: '10.876543210987654321',
           strike_price: '50000.123456789012345678',
         })

@@ -1,12 +1,12 @@
 /**
  * Wallet state slice for Zustand store
- * Manages wallet connection status and address (CreditCoin Chain only).
- * Actual wallet connection is handled by CTC integration in lib/ctc/client.ts and Privy.
+ * Manages wallet connection status and address (Aptos mainnet only).
+ * Actual wallet connection is handled by Aptos wallet adapter integration.
  */
 
 import { StateCreator } from "zustand";
 
-export type CtcNetwork = 'CTC' | null;
+export type CtcNetwork = 'APT' | null;
 
 export interface WalletState {
   address: string | null;

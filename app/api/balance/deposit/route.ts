@@ -11,7 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
-import { ethers } from 'ethers';
+import { AccountAddress } from '@aptos-labs/ts-sdk';
 
 interface DepositRequest {
   userAddress: string;
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body: DepositRequest = await request.json();
-    const { userAddress, amount, txHash, currency = 'CTC' } = body;
+    const { userAddress, amount, txHash, currency = 'APT' } = body;
 
     // Validate required fields
     if (!userAddress || amount === undefined || amount === null || !txHash) {
@@ -34,10 +34,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate CTC (EVM) address only
-    if (!ethers.isAddress(userAddress)) {
+    // Validate Aptos address
+    let normalizedAddress: string;
+    try {
+      normalizedAddress = AccountAddress.from(userAddress).toString();
+    } catch {
       return NextResponse.json(
-        { error: 'Invalid CTC (EVM) wallet address' },
+        { error: 'Invalid Aptos wallet address' },
         { status: 400 }
       );
     }
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
     // Call update_balance_for_deposit stored procedure using positional arguments
     // Order: p_user_address, p_deposit_amount, p_currency, p_transaction_hash
     const { data, error } = await supabaseServer.rpc('update_balance_for_deposit', {
-      p_user_address: userAddress.toLowerCase(),
+      p_user_address: normalizedAddress.toLowerCase(),
       p_deposit_amount: amount,
       p_currency: currency,
       p_transaction_hash: txHash,

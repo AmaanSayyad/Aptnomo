@@ -2,7 +2,7 @@
  * Game state slice for Zustand store
  * Manages game state, active rounds, price data, and betting actions
  * 
- * Note: After CreditCoin migration, game logic remains off-chain.
+ * Note: After Aptos migration, game logic remains off-chain.
  * Only deposit/withdrawal operations interact with the blockchain.
  */
 
@@ -56,7 +56,7 @@ export interface GameState {
     timestamp: number;
     asset: AssetType; // Track which asset this result belongs to
     cellId?: string; // For box mode visual feedback
-    currency?: string; // The currency usage (e.g. CTC)
+    currency?: string; // The currency usage (e.g. APT)
   } | null;
   error: string | null;
   timeframeSeconds: number;
@@ -257,19 +257,19 @@ export const createGameSlice: StateCreator<any> = (set, get) => ({
 
   /**
    * Place a bet on a target cell
-   * Note: After CreditCoin migration, this method is deprecated.
+   * Note: After Aptos migration, this method is deprecated.
    * Use placeBetFromHouseBalance instead for off-chain betting.
-   * @param amount - Bet amount in CTC tokens (e.g., "1.0")
+   * @param amount - Bet amount in APT tokens (e.g., "1.0")
    * @param targetId - ID of the target cell (1-8) OR dynamic grid target (e.g., "UP-2.50")
    */
   placeBet: async (amount: string, targetId: string) => {
-    throw new Error("placeBet is deprecated after CreditCoin migration. Use placeBetFromHouseBalance instead.");
+    throw new Error("placeBet is deprecated after Aptos migration. Use placeBetFromHouseBalance instead.");
   },
 
   /**
    * Place a bet using house balance (no wallet signature required)
    * Instant-resolution system: bet is placed on a specific cell, resolves when chart hits it
-   * @param amount - Bet amount in CTC tokens
+   * @param amount - Bet amount in APT tokens
    * @param targetId - Dynamic grid target (e.g., "UP-2.50") containing direction and multiplier
    * @param userAddress - User's wallet address
    * @param cellId - Optional: The specific cell ID this bet is placed on
@@ -370,8 +370,8 @@ export const createGameSlice: StateCreator<any> = (set, get) => ({
 
       set({ isPlacingBet: true, error: null });
 
-      // Get current network from store (defaults to CTC)
-      const network = (get() as any).network || 'CTC';
+      // Get current network from store (defaults to APT)
+      const network = (get() as any).network || 'APT';
 
       // Call API endpoint to place bet from house balance
       const response = await fetch('/api/balance/bet', {
@@ -413,7 +413,7 @@ export const createGameSlice: StateCreator<any> = (set, get) => ({
         direction: direction,
         timestamp: Date.now(),
         status: 'active',
-        network: network, // Save the network used (CTC)
+        network: network, // Save the network used (APT)
         ...(gameMode === 'binomo' ? {
           strikePrice: currentPrice,
           endTime: Date.now() + (durationSeconds * 1000)
@@ -452,12 +452,12 @@ export const createGameSlice: StateCreator<any> = (set, get) => ({
 
   /**
    * Settle an active round
-   * Note: After CreditCoin migration, settlement is handled automatically by the instant-resolution system.
+   * Note: After Aptos migration, settlement is handled automatically by the instant-resolution system.
    * This method is kept for backward compatibility but does nothing.
    * @param betId - The unique bet ID to settle
    */
   settleRound: async (betId: string) => {
-    console.log('settleRound called but is deprecated after CreditCoin migration');
+    console.log('settleRound called but is deprecated after Aptos migration');
     set({ isSettling: false });
   },
 
@@ -549,7 +549,7 @@ export const createGameSlice: StateCreator<any> = (set, get) => ({
 
     activeBets.forEach((bet: ActiveBet) => {
       // Resolve bet if: asset matches and status is active
-      const betAsset = bet.asset || 'CTC'; // Fallback to CTC
+      const betAsset = bet.asset || 'APT'; // Fallback to APT
       if (betAsset !== currentSelectedAsset || bet.status !== 'active') return;
 
       // BYNOMO (Classic) Logic
@@ -629,7 +629,7 @@ export const createGameSlice: StateCreator<any> = (set, get) => ({
           timestamp: now,
           asset: resolvedBet.asset,
           cellId: resolvedBet.cellId,
-          currency: resolvedBet.network || (network || 'CTC')
+          currency: resolvedBet.network || (network || 'APT')
         }
       });
 
@@ -642,7 +642,7 @@ export const createGameSlice: StateCreator<any> = (set, get) => ({
             body: JSON.stringify({
               userAddress: address,
               winAmount: payout,
-              currency: resolvedBet.network || (network || 'CTC'),
+              currency: resolvedBet.network || (network || 'APT'),
               betId: resolvedBet.id
             })
           }).then(() => {
@@ -683,7 +683,7 @@ export const createGameSlice: StateCreator<any> = (set, get) => ({
           body: JSON.stringify({
             id: resolvedBet.id,
             walletAddress: address,
-            asset: resolvedBet.asset || 'CTC',
+            asset: resolvedBet.asset || 'APT',
             direction: resolvedBet.direction,
             amount: resolvedBet.amount,
             multiplier: resolvedBet.multiplier,
@@ -692,7 +692,7 @@ export const createGameSlice: StateCreator<any> = (set, get) => ({
             payout: payout,
             won: won,
             mode: resolvedBet.mode,
-            network: network || 'CTC',
+            network: network || 'APT',
           })
         }).catch(err => console.error('Failed to save bet to Supabase:', err));
       }

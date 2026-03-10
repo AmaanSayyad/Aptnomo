@@ -11,7 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase/server';
-import { ethers } from 'ethers';
+import { AccountAddress } from '@aptos-labs/ts-sdk';
 
 export async function GET(
   request: NextRequest,
@@ -22,12 +22,15 @@ export async function GET(
     const { address } = await params;
 
     const { searchParams } = new URL(request.url);
-    const currency = searchParams.get('currency') || 'CTC';
+    const currency = searchParams.get('currency') || 'APT';
 
-    // Validate CTC (EVM) address only
-    if (!ethers.isAddress(address)) {
+    // Validate Aptos address
+    let normalizedAddress: string;
+    try {
+      normalizedAddress = AccountAddress.from(address).toString();
+    } catch {
       return NextResponse.json(
-        { error: 'Invalid CTC (EVM) wallet address' },
+        { error: 'Invalid Aptos wallet address' },
         { status: 400 }
       );
     }
@@ -36,7 +39,7 @@ export async function GET(
     const { data, error } = await supabaseServer
       .from('user_balances')
       .select('balance, updated_at')
-      .eq('user_address', address.toLowerCase())
+      .eq('user_address', normalizedAddress.toLowerCase())
       .eq('currency', currency)
       .single();
 
@@ -63,7 +66,7 @@ export async function GET(
       const { data: tierData } = await supabaseServer
         .from('user_balances')
         .select('user_tier')
-        .eq('user_address', address.toLowerCase())
+        .eq('user_address', normalizedAddress.toLowerCase())
         .eq('currency', currency)
         .single();
 

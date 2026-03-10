@@ -22,16 +22,16 @@ const orbitron = Orbitron({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://creditnomo.vercel.app'),
-  title: "CreditNomo - Binary Options on CreditCoin",
+  metadataBase: new URL('https://nomo.vercel.app'),
+  title: "Nomo - Binary Options on Aptos",
   description:
-    "On-chain binary options trading dApp on CreditCoin testnet. Powered by Pyth Hermes price attestations and Supabase. Oracle-bound resolution, minimal trust.",
+    "On-chain binary options trading dApp on Aptos mainnet. Powered by Pyth Hermes price attestations and Supabase. Oracle-bound resolution, minimal trust.",
   keywords: [
     "binary options",
     "crypto trading",
     "Pyth oracle",
-    "CreditCoin",
-    "CTC",
+    "Aptos",
+    "APT",
     "Web3",
     "prediction",
   ],
@@ -41,15 +41,15 @@ export const metadata: Metadata = {
     apple: "/creditnomo-logo.ico",
   },
   openGraph: {
-    title: "CreditNomo - Binary Options on CreditCoin",
+    title: "Nomo - Binary Options on Aptos",
     description:
-      "On-chain binary options trading dApp on CreditCoin testnet. Powered by Pyth Hermes and Supabase. Oracle-bound resolution, minimal trust.",
-    images: [{ url: '/creditnomo-logo.png', width: 512, height: 512, alt: 'CreditNomo' }],
+      "On-chain binary options trading dApp on Aptos mainnet. Powered by Pyth Hermes and Supabase. Oracle-bound resolution, minimal trust.",
+    images: [{ url: '/creditnomo-logo.png', width: 512, height: 512, alt: 'Nomo' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "CreditNomo - Binary Options on CreditCoin",
-    description: "On-chain binary options on CreditCoin testnet. Oracle-bound resolution, minimal trust.",
+    title: "Nomo - Binary Options on Aptos",
+    description: "On-chain binary options on Aptos mainnet. Oracle-bound resolution, minimal trust.",
     images: ['/creditnomo-logo.png'],
   },
 };

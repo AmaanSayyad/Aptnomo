@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
             .upsert({
                 id,
                 wallet_address: walletAddress.toLowerCase(),
-                asset: asset || 'CTC',
+                asset: asset || 'APT',
                 direction: direction || 'UP',
                 amount: parseFloat(amount) || 0,
                 multiplier: parseFloat(multiplier) || 1.9,
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
                 payout: parseFloat(payout) || 0,
                 won: !!won,
                 mode: mode || 'creditnomo',
-                network: network || 'CTC',
+                network: network || 'APT',
                 resolved_at: new Date().toISOString(),
             }, { onConflict: 'id' });
 

@@ -6,13 +6,13 @@
  * 
  * Called when user places a bet from house balance.
  * Validates sufficient balance and deducts bet amount atomically.
- * Note: After CreditCoin migration, game logic is off-chain. No blockchain call needed.
+ * Note: After Aptos migration, game logic is off-chain. No blockchain call needed.
  * Inserts audit log entry with operation_type='bet_placed'.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
-import { ethers } from 'ethers';
+import { AccountAddress } from '@aptos-labs/ts-sdk';
 
 interface BetRequest {
   userAddress: string;
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body: BetRequest = await request.json();
-    const { userAddress, betAmount, currency = 'CTC', roundId, targetPrice, isOver, multiplier, targetCell } = body;
+    const { userAddress, betAmount, currency = 'APT', roundId, targetPrice, isOver, multiplier, targetCell } = body;
 
     // Validate required fields
     if (!userAddress || betAmount === undefined || betAmount === null) {
@@ -44,9 +44,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate address using utility
-    const { isValidAddress } = await import('@/lib/utils/address');
-    if (!(await isValidAddress(userAddress))) {
+    // Validate address
+    let normalizedAddress: string;
+    try {
+      normalizedAddress = AccountAddress.from(userAddress).toString();
+    } catch {
       return NextResponse.json(
         { error: 'Invalid wallet address format' },
         { status: 400 }
@@ -84,7 +86,7 @@ export async function POST(request: NextRequest) {
     // - Validating sufficient balance
     // - Inserting audit log entry with operation_type='bet_placed'
     const { data, error } = await supabase.rpc('deduct_balance_for_bet', {
-      p_user_address: userAddress.toLowerCase(),
+      p_user_address: normalizedAddress.toLowerCase(),
       p_bet_amount: betAmount,
       p_currency: currency,
     });
@@ -117,11 +119,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Balance deducted successfully
-    // Note: After CreditCoin migration, game logic is off-chain. No blockchain call needed.
+    // Note: After Aptos migration, game logic is off-chain. No blockchain call needed.
     // The bet is tracked in the database and resolved by the game engine.
     try {
       // Generate a bet ID
-      const betId = `bet_${Date.now()}_${userAddress.slice(-6)}`;
+      const betId = `bet_${Date.now()}_${normalizedAddress.slice(-6)}`;
 
       // Log bet placement for debugging
       console.log('Bet placed:', {

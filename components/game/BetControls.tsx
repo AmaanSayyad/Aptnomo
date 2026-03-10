@@ -29,7 +29,7 @@ export const BetControls: React.FC<BetControlsProps> = ({
 
   const isWalletConnected = !!address;
 
-  const currencySymbol = 'CTC';
+  const currencySymbol = 'APT';
 
   const [error, setError] = useState<string | null>(null);
 

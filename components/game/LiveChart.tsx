@@ -80,7 +80,7 @@ export const LiveChart: React.FC<LiveChartProps> = ({ betAmount, setBetAmount })
   const blitzMultiplier = useStore((state) => state.blitzMultiplier);
   const lastResult = useStore((state) => state.lastResult);
 
-  const currencySymbol = 'CTC';
+  const currencySymbol = 'APT';
 
 
   const containerRef = useRef<HTMLDivElement>(null);
